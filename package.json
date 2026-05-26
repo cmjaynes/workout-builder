@@ -1,0 +1,20 @@
+{
+  "name": "group-workout-builder",
+  "version": "1.0.0",
+  "description": "Group fitness session planner — PWA",
+  "scripts": {
+    "dev": "npx serve . -p 3000",
+    "build": "echo 'Static site — no build step needed'",
+    "preview": "npx serve . -p 4000"
+  },
+  "keywords": [
+    "fitness",
+    "workout",
+    "pwa"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.0.0"
+  }
+}

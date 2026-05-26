@@ -1,0 +1,2961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Workout">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0e0e0e">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Group Workout Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0e0e0e;
+  --surface: #1a1a1a;
+  --surface2: #242424;
+  --border: #2e2e2e;
+  --accent: #e8ff3c;
+  --accent2: #ff6b35;
+  --accent3: #3cf0ff;
+  --text: #f0f0f0;
+  --muted: #777;
+  --radius: 8px;
+  --sec-warmup: #a855f7;
+  --sec-set: #3cf0ff;
+  --sec-abs: #e8ff3c;
+  --sec-chest: #ff6b35;
+  --sec-burnout: #ff3c7a;
+  --sec-default: #555;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+
+/* ── HEADER ── */
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px; position: sticky; top: 0; z-index: 10;
+}
+header h1 { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 2px; color: var(--accent); line-height: 1; }
+header p { color: var(--muted); font-size: 0.78rem; }
+.header-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+/* ── STATS BAR ── */
+.stats-bar {
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 20px;
+  display: flex; gap: 24px; align-items: center; flex-wrap: wrap;
+}
+.stat { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); }
+.stat strong { color: var(--accent); font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 1px; }
+
+/* ── BUTTONS ── */
+.btn {
+  padding: 7px 14px; border-radius: var(--radius); border: none;
+  font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 0.8rem;
+  cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+.btn-accent { background: var(--accent); color: #000; }
+.btn-accent:hover { background: #d4eb2a; }
+.btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn-crest { background: linear-gradient(135deg, #ff6b35, #e8ff3c); color: #000; font-weight: 700; }
+.btn-crest:hover { opacity: 0.88; transform: scale(1.02); }
+.btn-coach { background: #1a1a2e; color: var(--accent3); border: 1px solid var(--accent3); }
+.btn-coach:hover { background: var(--accent3); color: #000; }
+.btn-random { background: transparent; color: #a855f7; border: 1px solid #a855f7; }
+.btn-random:hover { background: #a855f7; color: #fff; }
+
+/* ── LAYOUT ── */
+.main {
+  display: grid; grid-template-columns: 300px 1fr;
+  flex: 1; min-height: 0; overflow: hidden;
+}
+
+/* ── MUSIC PANEL ── */
+.music-panel {
+  display: none; background: #07070f; border-bottom: 1px solid #1a1a33;
+  flex-shrink: 0; flex-direction: column; gap: 0;
+}
+.music-panel.open { display: flex; }
+.music-top-row {
+  display: flex; align-items: center; gap: 8px; padding: 8px 14px;
+  border-bottom: 1px solid #1a1a33;
+}
+.music-top-row .music-label { font-family:'Bebas Neue',sans-serif; letter-spacing:2px; font-size:0.85rem; color:#1DB954; flex-shrink:0; }
+.music-url-input {
+  flex:1; background:var(--surface2); border:1px solid #1a1a33; border-radius:var(--radius);
+  padding:5px 10px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:0.78rem; outline:none;
+}
+.music-url-input:focus { border-color:#1DB954; }
+.music-url-input::placeholder { color:#2a2a3a; }
+.btn-spotify { background:#1DB954; color:#000; border:none; border-radius:20px; padding:5px 14px; font-size:0.75rem; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; flex-shrink:0; }
+.btn-spotify:hover { background:#1ed760; }
+.btn-spotify.ghost { background:transparent; color:#1DB954; border:1px solid #1DB95444; }
+.btn-spotify.ghost:hover { background:rgba(29,185,84,0.1); border-color:#1DB954; }
+.music-close-btn { background:transparent; border:none; color:#333; cursor:pointer; font-size:1rem; padding:4px; margin-left:2px; line-height:1; }
+.music-close-btn:hover { color:var(--muted); }
+.music-body { display:flex; align-items:stretch; min-height:0; }
+.music-embed-col { flex:1; min-width:0; border-right:1px solid #1a1a33; }
+.music-embed-col iframe { display:block; width:100%; border:none; }
+.music-sdk-col {
+  width:260px; flex-shrink:0; padding:12px 14px; display:flex; flex-direction:column;
+  justify-content:center; gap:8px;
+}
+.music-track-name { font-size:0.83rem; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.music-artist-name { font-size:0.72rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:-4px; }
+.music-ctrl-row { display:flex; align-items:center; gap:8px; }
+.mc-btn {
+  background:transparent; border:1px solid var(--border); border-radius:50%;
+  width:30px; height:30px; cursor:pointer; color:var(--text);
+  display:flex; align-items:center; justify-content:center; font-size:0.8rem; flex-shrink:0;
+  transition:all 0.13s;
+}
+.mc-btn:hover { border-color:#1DB954; color:#1DB954; }
+.mc-btn.play { background:#1DB954; border-color:#1DB954; color:#000; width:36px; height:36px; font-size:1rem; }
+.mc-btn.play:hover { background:#1ed760; }
+.music-vol { flex:1; -webkit-appearance:none; height:3px; border-radius:2px; background:var(--border); outline:none; cursor:pointer; }
+.music-vol::-webkit-slider-thumb { -webkit-appearance:none; width:11px; height:11px; border-radius:50%; background:#1DB954; cursor:pointer; }
+.music-setup { display:flex; flex-direction:column; gap:6px; }
+.music-setup-hint { font-size:0.7rem; color:#333; line-height:1.45; }
+.music-client-input {
+  width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:4px;
+  padding:5px 8px; color:var(--text); font-size:0.75rem; font-family:'DM Sans',sans-serif; outline:none;
+}
+.music-client-input:focus { border-color:#1DB954; }
+.btn-hdr-music { background:transparent; color:#1DB954; border:1px solid #1DB95430; }
+.btn-hdr-music:hover, .btn-hdr-music.active { background:rgba(29,185,84,0.1); border-color:#1DB954; }
+
+/* ── COACH MINI-PLAYER ── */
+.coach-mini-player {
+  position:absolute; top:16px; right:20px; background:rgba(29,185,84,0.08);
+  border:1px solid #1DB95433; border-radius:20px; padding:7px 14px;
+  display:none; align-items:center; gap:10px;
+}
+.coach-mini-player.visible { display:flex; }
+.coach-mini-track { max-width:200px; font-size:0.78rem; color:#1DB954; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.coach-mini-btn { background:transparent; border:none; color:#1DB954; cursor:pointer; font-size:1.1rem; padding:0; line-height:1; transition:opacity 0.13s; }
+.coach-mini-btn:hover { opacity:0.7; }
+
+/* ── LIBRARY ── */
+.library { background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+.library-header { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+.library-header h2 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px; font-size: 1rem; color: var(--muted); margin-bottom: 8px; }
+.search-box {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 7px 10px; color: var(--text);
+  font-family: 'DM Sans', sans-serif; font-size: 0.82rem; outline: none;
+}
+.search-box:focus { border-color: var(--accent); }
+.category-tabs { display: flex; gap: 5px; padding: 8px 14px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.cat-tab {
+  padding: 3px 9px; border-radius: 20px; font-size: 0.7rem; font-weight: 600;
+  cursor: pointer; border: 1px solid var(--border); background: transparent;
+  color: var(--muted); transition: all 0.15s; font-family: 'DM Sans', sans-serif;
+}
+.cat-tab.active, .cat-tab:hover { background: var(--accent); color: #000; border-color: var(--accent); }
+.exercise-list { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 5px; }
+.exercise-item {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 8px 10px; cursor: grab; display: flex; align-items: center; gap: 8px;
+  transition: border-color 0.13s, background 0.13s; user-select: none;
+}
+.exercise-item:hover { border-color: #3a3a3a; background: #1f1f1f; }
+.exercise-item.dragging { opacity: 0.35; }
+.exercise-item.favorited { border-color: #f59e0b33; }
+.ex-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.ex-name {
+  font-size: 0.78rem; font-weight: 500; line-height: 1.3; flex: 1;
+  cursor: pointer; color: var(--text); transition: color 0.13s;
+}
+.ex-name:hover { color: var(--accent); }
+.fav-btn {
+  background: none; border: none; cursor: pointer; font-size: 0.8rem;
+  color: #2e2e2e; transition: color 0.13s; padding: 2px; flex-shrink: 0;
+}
+.fav-btn:hover, .fav-btn.active { color: #f59e0b; }
+.add-ex-btn {
+  background: transparent; border: 1px solid #2a2a2a; color: var(--accent);
+  font-size: 1rem; width: 24px; height: 24px; border-radius: 50%; cursor: pointer;
+  flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  transition: all 0.13s; font-weight: 600; line-height: 1;
+}
+.add-ex-btn:hover { background: var(--accent); color: #000; border-color: var(--accent); }
+
+/* ── EXERCISE DETAIL MODAL ── */
+.exercise-detail-modal { max-width: 460px; padding: 28px; }
+.ex-detail-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 4px; }
+.ex-detail-cat { font-family:'Bebas Neue',sans-serif; letter-spacing:3px; font-size:0.68rem; color:var(--muted); margin-bottom:6px; }
+.ex-detail-name { font-family:'Bebas Neue',sans-serif; font-size:2.2rem; letter-spacing:2px; color:var(--accent); line-height:1; }
+.ex-detail-close { background:none; border:none; color:#444; cursor:pointer; font-size:1.3rem; padding:0; line-height:1; transition:color 0.13s; }
+.ex-detail-close:hover { color:var(--text); }
+.ex-detail-muscles { font-size:0.75rem; color:#555; letter-spacing:0.5px; margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid var(--border); }
+.ex-detail-label { font-family:'Bebas Neue',sans-serif; letter-spacing:2px; font-size:0.68rem; color:#333; margin-bottom:10px; }
+.ex-detail-cues { list-style:none; padding:0; display:flex; flex-direction:column; gap:7px; margin-bottom:22px; }
+.ex-detail-cues li { font-size:0.82rem; color:#ccc; padding:10px 14px 10px 16px; background:var(--surface2); border-radius:6px; border-left:2px solid var(--accent); line-height:1.45; }
+.ex-detail-actions { display:flex; gap:10px; padding-top:4px; }
+.ex-detail-actions .btn { flex:1; font-size:0.82rem; padding:9px 14px; }
+
+/* ── BUILDER ── */
+.builder { display: flex; flex-direction: column; overflow: hidden; }
+.builder-toolbar {
+  padding: 10px 18px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--surface);
+}
+.workout-title-input {
+  background: transparent; border: none; border-bottom: 2px solid var(--border);
+  color: var(--text); font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem;
+  letter-spacing: 2px; outline: none; padding: 3px 0; min-width: 160px; flex: 1;
+}
+.workout-title-input:focus { border-bottom-color: var(--accent); }
+.workout-title-input::placeholder { color: #444; }
+.dur-input {
+  width: 70px; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 5px 8px; color: var(--text); font-size: 0.78rem;
+  outline: none; font-family: 'DM Sans', sans-serif;
+}
+.toolbar-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.builder-sections { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+
+/* ── SECTION CARDS ── */
+.section-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; border-left: 3px solid var(--sec-default); }
+.section-card[data-color="warmup"] { border-left-color: var(--sec-warmup); }
+.section-card[data-color="set"] { border-left-color: var(--sec-set); }
+.section-card[data-color="abs"] { border-left-color: var(--sec-abs); }
+.section-card[data-color="chest"] { border-left-color: var(--sec-chest); }
+.section-card[data-color="burnout"] { border-left-color: var(--sec-burnout); }
+
+.section-header {
+  display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+  background: var(--surface2); border-bottom: 1px solid var(--border);
+}
+.section-color-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; cursor: pointer; }
+.section-label-input {
+  background: transparent; border: none; color: var(--text); font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.95rem; letter-spacing: 1.5px; outline: none; flex: 1;
+}
+.section-label-input::placeholder { color: #444; }
+.section-actions { display: flex; gap: 4px; margin-left: auto; align-items: center; }
+.section-note-input {
+  width: 100%; background: transparent; border: none; border-top: 1px solid var(--border);
+  color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 0.75rem;
+  padding: 6px 14px; outline: none; font-style: italic;
+}
+.section-note-input::placeholder { color: #3a3a3a; }
+.icon-btn {
+  background: transparent; border: none; color: var(--muted); cursor: pointer;
+  font-size: 0.85rem; padding: 3px 6px; border-radius: 4px; transition: all 0.15s; line-height: 1;
+}
+.icon-btn:hover { color: var(--text); background: var(--border); }
+.icon-btn.del:hover { color: #ff4444; }
+.icon-btn.split { color: var(--accent2); border: 1px solid var(--accent2); font-size: 0.68rem; padding: 2px 6px; }
+.icon-btn.split:hover { background: var(--accent2); color: #000; }
+.icon-btn.dup { color: var(--accent3); font-size: 0.7rem; }
+.icon-btn.move-up, .icon-btn.move-dn { color: #666; font-size: 0.75rem; }
+.icon-btn.move-up:hover, .icon-btn.move-dn:hover { color: var(--accent); }
+
+.drop-zone { min-height: 54px; padding: 8px; display: flex; flex-direction: column; gap: 5px; }
+.drop-zone.drag-over { background: rgba(232,255,60,0.04); outline: 2px dashed var(--accent); outline-offset: -4px; border-radius: 8px; }
+.drop-placeholder { text-align: center; color: #3a3a3a; font-size: 0.75rem; padding: 10px; pointer-events: none; }
+
+.built-exercise {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 6px;
+  padding: 7px 10px; display: flex; align-items: center; gap: 8px;
+  cursor: grab; transition: all 0.15s; user-select: none;
+}
+.built-exercise:hover { border-color: #3a3a3a; }
+.built-exercise.dragging { opacity: 0.3; }
+.drag-handle { color: #444; font-size: 0.85rem; cursor: grab; flex-shrink: 0; }
+.be-name { flex: 1; font-size: 0.82rem; font-weight: 500; }
+.be-reps {
+  background: transparent; border: 1px solid var(--border); border-radius: 4px;
+  color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 0.72rem;
+  padding: 2px 6px; width: 78px; outline: none; text-align: center;
+}
+.be-reps:focus { border-color: var(--accent); color: var(--text); }
+.remove-ex { color: #444; cursor: pointer; border: none; background: none; font-size: 0.85rem; padding: 2px 4px; flex-shrink: 0; }
+.remove-ex:hover { color: #ff4444; }
+
+.section-footer { display: flex; gap: 6px; padding: 8px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+.timer-preset-btn {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 4px;
+  color: var(--muted); font-size: 0.68rem; font-family: 'DM Sans', sans-serif;
+  padding: 3px 8px; cursor: pointer; transition: all 0.15s;
+}
+.timer-preset-btn:hover { border-color: var(--accent3); color: var(--accent3); }
+.timer-preset-btn.applied { border-color: var(--accent3); color: var(--accent3); background: rgba(60,240,255,0.06); }
+
+.add-section-btn {
+  border: 2px dashed var(--border); border-radius: 12px; padding: 12px;
+  text-align: center; cursor: pointer; color: var(--muted); font-size: 0.82rem;
+  font-weight: 500; transition: all 0.15s; background: transparent; width: 100%;
+  font-family: 'DM Sans', sans-serif;
+}
+.add-section-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── MODALS ── */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.82);
+  display: none; align-items: center; justify-content: center; z-index: 100; padding: 16px;
+}
+.modal-backdrop.open { display: flex; }
+.modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; width: 90%; max-height: 88vh; overflow-y: auto; }
+.modal h2 { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 2px; color: var(--accent); margin-bottom: 14px; }
+.modal-actions { display: flex; gap: 8px; margin-top: 14px; justify-content: flex-end; flex-wrap: wrap; }
+.export-text {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px; font-size: 0.78rem; line-height: 1.8; white-space: pre-wrap;
+  color: var(--text); max-height: 280px; overflow-y: auto;
+}
+
+/* Pick section modal */
+.pick-modal { max-width: 380px; }
+.pick-modal h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 4px; }
+.pick-ex-name { color: var(--accent); font-weight: 600; font-size: 0.88rem; margin-bottom: 14px; display: block; }
+.pick-sec-btn {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 11px 14px; margin-bottom: 7px; cursor: pointer; display: flex;
+  align-items: center; justify-content: space-between; transition: all 0.15s;
+  font-family: 'DM Sans', sans-serif; text-align: left;
+}
+.pick-sec-btn:hover { border-color: var(--accent); background: rgba(232,255,60,0.04); }
+.pick-sec-label { color: var(--accent); font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px; }
+.pick-sec-count { color: var(--muted); font-size: 0.72rem; }
+
+/* Crest modal */
+.crest-modal { max-width: 500px; }
+.crest-modal h2 span { color: var(--accent2); }
+.crest-subtitle { color: var(--muted); font-size: 0.8rem; margin-bottom: 18px; }
+.crest-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+.crest-option { border: 2px solid var(--border); border-radius: 12px; padding: 18px 14px; cursor: pointer; transition: all 0.18s; text-align: center; background: var(--surface2); }
+.crest-option:hover { border-color: var(--accent); transform: translateY(-2px); }
+.crest-option.selected { border-color: var(--accent); background: rgba(232,255,60,0.05); }
+.crest-option-icon { font-size: 1.8rem; margin-bottom: 6px; }
+.crest-option-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 1.5px; color: var(--accent); margin-bottom: 4px; }
+.crest-option-desc { font-size: 0.72rem; color: var(--muted); line-height: 1.4; }
+.crest-preview { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 0.76rem; line-height: 1.9; color: #ccc; max-height: 180px; overflow-y: auto; margin-bottom: 14px; display: none; }
+.crest-preview.visible { display: block; }
+.crest-preview-section { color: var(--accent); font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px; font-size: 0.82rem; }
+.crest-preview-ex { padding-left: 12px; color: #999; }
+
+/* Saved workouts modal */
+.saved-list { display: flex; flex-direction: column; gap: 8px; max-height: 360px; overflow-y: auto; }
+.saved-item {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px 14px; display: flex; align-items: center; justify-content: space-between;
+  gap: 10px;
+}
+.saved-item-title { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 1px; color: var(--accent); }
+.saved-item-meta { color: var(--muted); font-size: 0.72rem; }
+.saved-item-actions { display: flex; gap: 6px; }
+
+/* ── COACH VIEW ── */
+#coachView {
+  display: none; position: fixed; inset: 0; background: #000;
+  z-index: 200; flex-direction: column; align-items: center;
+  overflow-y: auto; text-align: center; padding: 28px 32px 24px;
+  gap: 0;
+}
+#coachView.open { display: flex; }
+.coach-section-label { font-family:'Bebas Neue',sans-serif; font-size:1rem; letter-spacing:3px; color:#2a2a2a; margin-bottom:8px; }
+.coach-ex-name { font-family:'Bebas Neue',sans-serif; font-size:clamp(2.8rem, 9vw, 5.5rem); letter-spacing:4px; color:var(--accent); line-height:1.05; margin-bottom:10px; }
+.coach-reps { font-size:1.3rem; color:var(--accent2); font-weight:600; margin-bottom:8px; min-height:1.6rem; }
+.coach-progress { color:#2a2a2a; font-size:0.8rem; margin-bottom:14px; }
+.coach-controls { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:4px; }
+.coach-btn { padding:12px 24px; border-radius:10px; font-family:'DM Sans',sans-serif; font-weight:700; font-size:0.95rem; cursor:pointer; border:none; transition:all 0.15s; }
+.coach-btn-prev { background:var(--surface2); color:var(--muted); }
+.coach-btn-next { background:var(--accent); color:#000; font-size:1rem; padding:12px 32px; }
+.coach-btn-next:hover { background:#d4eb2a; }
+.coach-btn-exit { background:transparent; color:#ff4444; border:1px solid #ff4444; }
+.coach-nav-dots { display:flex; gap:5px; margin-bottom:12px; flex-wrap:wrap; justify-content:center; }
+.coach-dot { width:7px; height:7px; border-radius:50%; background:#1a1a1a; transition:all 0.2s; }
+.coach-dot.active { background:var(--accent); transform:scale(1.4); }
+.coach-dot.done { background:#2e2e2e; }
+
+/* Coach cues */
+.coach-cues-section { width:100%; max-width:580px; margin-bottom:12px; text-align:left; }
+.coach-cues-label { font-family:'Bebas Neue',sans-serif; letter-spacing:3px; font-size:0.62rem; color:#222; margin-bottom:6px; }
+.coach-cues-list { display:flex; flex-direction:column; gap:5px; }
+.coach-cue-item { font-size:0.8rem; color:#4a4a4a; padding:7px 12px 7px 14px; background:#080808; border-radius:6px; border-left:2px solid #1e1e1e; text-align:left; line-height:1.35; transition:border-color 0.3s; }
+.coach-cue-item.highlight { border-left-color:var(--accent); color:#888; }
+
+/* Coach music bar */
+.coach-music-bar {
+  width:100%; max-width:580px; margin-bottom:14px;
+  background:#030d06; border:1px solid #1DB95420;
+  border-radius:10px; padding:11px 16px;
+  display:none; flex-direction:column; gap:3px;
+}
+.coach-music-bar.visible { display:flex; }
+.coach-music-bar.minimal { background:transparent; border-color:transparent; padding:2px 0; align-items:center; }
+.coach-music-setup-btn {
+  background:transparent; border:1px solid #1DB95430; border-radius:20px;
+  color:#1DB95455; font-size:0.7rem; letter-spacing:2px;
+  font-family:'Bebas Neue',sans-serif; padding:5px 18px; cursor:pointer;
+  transition:all 0.15s;
+}
+.coach-music-setup-btn:hover { border-color:#1DB954; color:#1DB954; background:rgba(29,185,84,0.06); }
+#coachMusicEmbed iframe { border-radius:6px; display:block; }
+.coach-music-top { display:flex; align-items:center; gap:10px; margin-bottom:7px; }
+.coach-music-dot { width:6px; height:6px; border-radius:50%; background:#1DB954; flex-shrink:0; animation:pulse-green 2s ease-in-out infinite; }
+@keyframes pulse-green { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.coach-music-info { flex:1; min-width:0; text-align:left; }
+.coach-music-track { font-size:0.82rem; color:#1DB954; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.coach-music-artist { font-size:0.7rem; color:#0d4d20; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.coach-music-controls { display:flex; align-items:center; gap:8px; }
+.coach-music-btn {
+  background:transparent; border:1px solid #1DB95430; border-radius:50%;
+  width:30px; height:30px; cursor:pointer; color:#1DB954;
+  display:flex; align-items:center; justify-content:center; font-size:0.85rem;
+  flex-shrink:0; transition:all 0.13s;
+}
+.coach-music-btn:hover { background:rgba(29,185,84,0.12); border-color:#1DB954; }
+.coach-music-btn.play { width:36px; height:36px; background:#1DB954; border-color:#1DB954; color:#000; font-size:1rem; }
+.coach-music-btn.play:hover { background:#1ed760; }
+.coach-music-vol { flex:1; -webkit-appearance:none; height:2px; border-radius:2px; background:#1DB95420; outline:none; cursor:pointer; }
+.coach-music-vol::-webkit-slider-thumb { -webkit-appearance:none; width:10px; height:10px; border-radius:50%; background:#1DB954; cursor:pointer; }
+
+/* Remove old mini-player */
+.coach-mini-player { display:none !important; }
+
+/* ── COMBO BUILDER ── */
+.combo-modal { max-width: 480px; }
+.combo-modal h2 { color: var(--accent2); }
+.combo-subtitle { color: var(--muted); font-size: 0.8rem; margin-bottom: 14px; line-height: 1.5; }
+.combo-search { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 7px 10px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.82rem; outline: none; margin-bottom: 8px; }
+.combo-search:focus { border-color: var(--accent2); }
+.combo-ex-grid { display: flex; flex-direction: column; gap: 4px; max-height: 200px; overflow-y: auto; margin-bottom: 14px; }
+.combo-ex-option {
+  display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 6px;
+  cursor: pointer; transition: all 0.13s; user-select: none;
+}
+.combo-ex-option:hover { border-color: var(--accent2); }
+.combo-ex-option.selected { border-color: var(--accent2); background: rgba(255,107,53,0.08); }
+.combo-ex-option .ex-dot { flex-shrink: 0; }
+.combo-ex-option span { font-size: 0.8rem; flex: 1; }
+.combo-check { width: 16px; height: 16px; border: 1.5px solid var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; flex-shrink: 0; transition: all 0.13s; }
+.combo-ex-option.selected .combo-check { background: var(--accent2); border-color: var(--accent2); color: #000; }
+
+.combo-preview {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px 14px; margin-bottom: 12px; min-height: 48px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.combo-preview-label { font-size: 0.7rem; color: var(--muted); margin-bottom: 4px; }
+.combo-preview-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 1px; color: var(--accent2); line-height: 1.2; }
+.combo-preview-empty { color: #333; font-size: 0.78rem; font-style: italic; }
+.combo-name-input {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 8px 10px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.85rem;
+  outline: none; margin-bottom: 4px;
+}
+.combo-name-input:focus { border-color: var(--accent2); }
+.combo-hint { font-size: 0.7rem; color: #444; margin-bottom: 12px; }
+
+/* combo badge on built exercise */
+.combo-badge {
+  font-size: 0.6rem; background: var(--accent2); color: #000; border-radius: 3px;
+  padding: 1px 4px; font-weight: 700; letter-spacing: 0.5px; flex-shrink: 0;
+}
+
+/* ── COLOR DOTS ── */
+.cat-legs { background: #ff6b35; }
+.cat-upper { background: #3cf0ff; }
+.cat-core { background: #e8ff3c; }
+.cat-cardio { background: #ff3c7a; }
+.cat-warmup { background: #a855f7; }
+.cat-full { background: #22c55e; }
+
+/* ── CUSTOM EXERCISE ── */
+.custom-badge {
+  font-size: 0.6rem; background: #a855f7; color: #fff; border-radius: 3px;
+  padding: 1px 4px; font-weight: 700; letter-spacing: 0.5px; flex-shrink: 0;
+}
+.del-ex-btn {
+  background: none; border: none; cursor: pointer; font-size: 0.78rem;
+  color: #444; transition: color 0.15s; padding: 2px 3px; flex-shrink: 0;
+}
+.del-ex-btn:hover { color: #ff4444; }
+.cat-select {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 8px 10px; color: var(--text);
+  font-family: 'DM Sans', sans-serif; font-size: 0.85rem; outline: none;
+  appearance: none; cursor: pointer;
+}
+.cat-select:focus { border-color: var(--accent); }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ── MOBILE ── */
+@media (max-width: 680px) {
+  .main { grid-template-columns: 1fr; height: auto; }
+  .library { height: 300px; border-right: none; border-bottom: 1px solid var(--border); }
+  .builder { height: auto; min-height: 60vh; }
+  .main { overflow: visible; height: auto; }
+  body { overflow-y: auto; }
+}
+
+/* ── DISCIPLINE PACKS ── */
+.pack-badge { font-size: 0.6rem; border-radius: 3px; padding: 1px 4px; font-weight: 700; letter-spacing: 0.5px; flex-shrink: 0; }
+.pack-yoga { background: #22c55e; color: #000; }
+.pack-hiit { background: #ff3c7a; color: #fff; }
+.pack-tabata { background: #f59e0b; color: #000; }
+.pack-pilates { background: #3cf0ff; color: #000; }
+.pack-barre { background: #e879f9; color: #000; }
+.pack-boxing { background: #ff6b35; color: #000; }
+.pack-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.pack-card { background: var(--surface2); border: 2px solid var(--border); border-radius: 10px; padding: 14px 12px; transition: all 0.15s; }
+.pack-card.installed { border-color: var(--accent); background: rgba(232,255,60,0.04); }
+.pack-card-icon { font-size: 1.5rem; margin-bottom: 5px; }
+.pack-card-name { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 1.5px; margin-bottom: 3px; }
+.pack-card-desc { font-size: 0.7rem; color: var(--muted); line-height: 1.4; margin-bottom: 8px; }
+.pack-card-btn { width: 100%; padding: 5px 0; border-radius: 5px; border: none; font-family: 'DM Sans', sans-serif; font-size: 0.72rem; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+.pack-card.installed .pack-card-btn { background: #ff444422; color: #ff4444; }
+.pack-card:not(.installed) .pack-card-btn { background: var(--accent); color: #000; }
+
+/* ── TABATA ── */
+.tabata-badge { font-size: 0.6rem; background: #f59e0b; color: #000; border-radius: 3px; padding: 1px 5px; font-weight: 700; letter-spacing: 0.5px; }
+.tabata-input { width: 52px; background: var(--surface2); border: 1px solid #f59e0b55; border-radius: 4px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.75rem; padding: 3px 6px; outline: none; text-align: center; }
+.tabata-input:focus { border-color: #f59e0b; }
+.icon-btn.tabata { color: #f59e0b; border: 1px solid #f59e0b55; font-size: 0.68rem; padding: 2px 6px; }
+.icon-btn.tabata:hover { background: #f59e0b; color: #000; }
+.icon-btn.tabata.on { background: #f59e0b22; border-color: #f59e0b; color: #f59e0b; }
+
+/* ── COACH TIMER ── */
+.coach-timer { font-family: 'Bebas Neue', sans-serif; font-size: clamp(5rem, 22vw, 11rem); letter-spacing: 2px; line-height: 1; display: none; }
+.coach-timer.work { color: var(--accent); }
+.coach-timer.rest { color: var(--accent3); }
+.coach-timer.ex { color: var(--accent3); }
+.coach-timer.ex.low { color: var(--accent2); animation: pulse 0.5s ease-in-out infinite alternate; }
+.coach-timer.finished { color: var(--accent); }
+@keyframes pulse { from { opacity: 1; } to { opacity: 0.4; } }
+.coach-phase { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 4px; margin-bottom: 4px; display: none; }
+.coach-phase.work { color: var(--accent); }
+.coach-phase.rest { color: var(--accent3); }
+.coach-round { color: var(--muted); font-size: 0.85rem; margin-bottom: 16px; display: none; }
+.coach-note { color:#333; font-size:0.82rem; font-style:italic; margin-bottom:10px; max-width:560px; line-height:1.5; }
+.coach-next-up { font-size:0.78rem; color:#252525; letter-spacing:0.5px; margin-bottom:12px; }
+.coach-next-up .next-label { color:#1e1e1e; text-transform:uppercase; font-size:0.62rem; letter-spacing:2px; display:block; margin-bottom:2px; }
+.coach-next-up .next-name { color:#333; }
+.coach-next-up.section-change .next-label { color: var(--accent); }
+.coach-next-up.section-change .next-name { color: #888; }
+.coach-section-end-tag { display:inline-block; font-family:'Bebas Neue',sans-serif; font-size:0.55rem; letter-spacing:3px; color: var(--accent); border:1px solid var(--accent); border-radius:10px; padding:1px 8px; margin-left:8px; vertical-align:middle; opacity:0.7; }
+.coach-btn-timer { background: transparent; color: var(--accent3); border: 1px solid #3cf0ff44; font-size: 0.88rem; padding: 10px 18px; }
+.coach-btn-timer:hover, .coach-btn-timer.running { background: rgba(60,240,255,0.1); border-color: var(--accent3); }
+
+/* ── SECTION BREAK OVERLAY ── */
+.coach-break-screen {
+  display: none; position: fixed; inset: 0; background: #000;
+  z-index: 210; flex-direction: column; align-items: center;
+  justify-content: center; padding: 40px 32px; text-align: center;
+}
+.coach-break-screen.visible { display: flex; }
+.coach-break-badge {
+  font-family: 'Bebas Neue', sans-serif; font-size: 0.72rem;
+  letter-spacing: 5px; color: var(--accent);
+  border: 1px solid var(--accent); border-radius: 20px;
+  padding: 4px 18px; margin-bottom: 36px;
+}
+.coach-break-badge.complete { color: #fff; border-color: #333; }
+.coach-break-next-label {
+  font-family: 'Bebas Neue', sans-serif; font-size: 0.62rem;
+  letter-spacing: 4px; color: #2a2a2a; margin-bottom: 10px;
+}
+.coach-break-next-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2rem, 9vw, 5rem);
+  color: #fff; letter-spacing: 3px; line-height: 1.05;
+  margin-bottom: 40px;
+}
+.coach-break-countdown {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(6rem, 25vw, 13rem);
+  color: var(--accent3); line-height: 1;
+  margin-bottom: 6px;
+  animation: break-pulse 1s ease-in-out infinite;
+}
+@keyframes break-pulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
+.coach-break-sub {
+  font-size: 0.62rem; letter-spacing: 3px;
+  color: #252525; text-transform: uppercase; margin-bottom: 40px;
+}
+.coach-break-action-btn { font-size: 1.1rem; padding: 14px 40px; }
+
+/* ── SETTINGS ── */
+.settings-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.settings-cat-label { font-size: 0.72rem; color: var(--muted); width: 72px; flex-shrink: 0; font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px; }
+.settings-input { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 10px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.82rem; outline: none; }
+.settings-input:focus { border-color: var(--accent); }
+.toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-top: 1px solid var(--border); margin-top: 8px; }
+.toggle-desc { font-size: 0.82rem; color: var(--text); }
+.toggle-sub { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+.toggle-btn { width: 42px; height: 24px; border-radius: 12px; background: var(--border); border: none; cursor: pointer; position: relative; transition: background 0.2s; flex-shrink: 0; }
+.toggle-btn::after { content: ''; position: absolute; width: 18px; height: 18px; background: #fff; border-radius: 50%; top: 3px; left: 3px; transition: left 0.2s; }
+.toggle-btn.on { background: var(--accent); }
+.toggle-btn.on::after { left: 21px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>WORKOUT BUILDER</h1>
+    <p>Group fitness session planner</p>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-ghost" onclick="openSavedModal()">Saved</button>
+    <button class="btn btn-ghost" onclick="openPastModal()">Past</button>
+    <button class="btn btn-random" onclick="randomizeWorkout()">Randomize</button>
+    <button class="btn btn-crest" onclick="openCrestModal()">Templates</button>
+    <button class="btn btn-coach" onclick="openCoachView()">Present</button>
+    <button class="btn btn-hdr-music" id="btnMusic" onclick="toggleMusicPanel()">Music</button>
+    <button class="btn btn-accent" onclick="openExport()">Export</button>
+  </div>
+</header>
+
+<div class="stats-bar">
+  <div class="stat">Sections: <strong id="statSections">0</strong></div>
+  <div class="stat">Exercises: <strong id="statExercises">0</strong></div>
+  <div class="stat">Est. Time: <strong id="statTime">0 min</strong></div>
+  <div class="stat" style="margin-left:auto;">
+    <span style="font-size:0.72rem;color:#444;">Timer preset:</span>
+    <button class="timer-preset-btn" id="globalTimerBtn" onclick="cycleGlobalTimer()">Off</button>
+  </div>
+</div>
+
+<!-- MUSIC PANEL -->
+<div class="music-panel" id="musicPanel">
+  <div class="music-top-row">
+    <span class="music-label">🎵 SPOTIFY</span>
+    <input class="music-url-input" id="musicUrlInput" type="text"
+      placeholder="Paste Spotify playlist, album or track URL…"
+      onkeydown="if(event.key==='Enter')setSpotifyEmbed()">
+    <button class="btn-spotify" onclick="setSpotifyEmbed()">Set</button>
+    <button class="music-close-btn" onclick="toggleMusicPanel()" title="Close music panel">✕</button>
+  </div>
+  <div class="music-body" id="musicBody">
+    <div class="music-embed-col" id="musicEmbedCol">
+      <!-- embed renders here -->
+    </div>
+    <div class="music-sdk-col" id="musicSdkCol">
+      <!-- SDK controls or setup renders here -->
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <!-- LIBRARY -->
+  <div class="library">
+    <div class="library-header">
+      <h2>EXERCISE LIBRARY</h2>
+      <input class="search-box" type="text" id="searchInput" placeholder="Search exercises..." oninput="renderLibrary()">
+      <button class="btn btn-ghost" style="width:100%;margin-top:8px;font-size:0.75rem;color:var(--accent2);border-color:var(--accent2)44;" onclick="openComboBuilder()">Build Combo Move</button>
+      <button class="btn btn-ghost" style="width:100%;margin-top:6px;font-size:0.75rem;color:#a855f7;border-color:#a855f744;" onclick="openAddExModal()">+ Custom Exercise</button>
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <button class="btn btn-ghost" style="flex:1;font-size:0.72rem;padding:5px 8px;color:#3cf0ff;border-color:#3cf0ff44;" onclick="openPackModal()">Discipline Packs</button>
+        <button class="btn btn-ghost" style="flex:1;font-size:0.72rem;padding:5px 8px;" onclick="openLibSettingsModal()">Settings</button>
+      </div>
+    </div>
+    <div class="category-tabs" id="catTabs"></div>
+    <div class="exercise-list" id="exerciseList"></div>
+  </div>
+
+  <!-- BUILDER -->
+  <div class="builder">
+    <div class="builder-toolbar">
+      <input class="workout-title-input" id="workoutTitle" type="text" placeholder="SESSION NAME..." maxlength="50">
+      <div style="display:flex;gap:5px;align-items:center;">
+        <span style="font-size:0.72rem;color:var(--muted)">⏱</span>
+        <input class="dur-input" id="durationInput" type="text" placeholder="45 min">
+      </div>
+      <div class="toolbar-actions">
+        <button class="btn btn-accent" style="font-size:0.78rem;padding:6px 14px;" onclick="addSection()">+ Section</button>
+        <button class="btn btn-ghost" style="font-size:0.75rem;padding:5px 10px;" onclick="saveCurrentWorkout()">Save</button>
+        <button class="btn btn-ghost" style="font-size:0.75rem;padding:5px 10px;color:#a855f7;border-color:#a855f744;" onclick="openSaveTemplateModal()">Template</button>
+        <button class="btn btn-ghost" style="font-size:0.75rem;padding:5px 10px;color:#ff4444;border-color:#ff444433;" onclick="clearBuilder()">Clear</button>
+      </div>
+    </div>
+    <div class="builder-sections" id="builderSections"></div>
+  </div>
+</div>
+
+<!-- COACH VIEW -->
+<div id="coachView">
+  <!-- Exercise identity -->
+  <div class="coach-section-label" id="coachSecLabel"></div>
+  <div class="coach-ex-name" id="coachExName">READY</div>
+  <div class="coach-reps" id="coachReps"></div>
+
+  <!-- Timer (tabata or exercise countdown) -->
+  <div class="coach-phase" id="coachPhase"></div>
+  <div class="coach-timer" id="coachTimer"></div>
+  <div class="coach-round" id="coachRound"></div>
+
+  <!-- Coaching cues -->
+  <div class="coach-cues-section" id="coachCuesSection">
+    <div class="coach-cues-label">COACHING CUES</div>
+    <div class="coach-cues-list" id="coachCuesList"></div>
+  </div>
+
+  <!-- Section note -->
+  <div class="coach-note" id="coachNote"></div>
+
+  <!-- Next up + progress -->
+  <div class="coach-next-up" id="coachNextUp"></div>
+  <div class="coach-nav-dots" id="coachDots"></div>
+  <div class="coach-progress" id="coachProgress"></div>
+
+  <!-- Music bar -->
+  <div class="coach-music-bar visible" id="coachMusicBar">
+    <!-- SDK mode: full track + controls -->
+    <div id="coachMusicSdk" style="display:none">
+      <div class="coach-music-top">
+        <div class="coach-music-dot"></div>
+        <div class="coach-music-info">
+          <div class="coach-music-track" id="coachMusicTrack">Not playing</div>
+          <div class="coach-music-artist" id="coachMusicArtist"></div>
+        </div>
+      </div>
+      <div class="coach-music-controls">
+        <button class="coach-music-btn" onclick="spotifyPrev()" title="Previous">⏮</button>
+        <button class="coach-music-btn play" id="coachMusicPlayBtn" onclick="spotifyToggle()">▶</button>
+        <button class="coach-music-btn" onclick="spotifyNext()" title="Next">⏭</button>
+        <input class="coach-music-vol" type="range" min="0" max="100" value="80"
+          oninput="spotifyVolume(this.value)" title="Volume">
+      </div>
+    </div>
+    <!-- Embed mode: compact Spotify player -->
+    <div id="coachMusicEmbed" style="display:none"></div>
+    <!-- No music: setup prompt -->
+    <div id="coachMusicPrompt">
+      <button class="coach-music-setup-btn" onclick="closeCoachView(); setTimeout(toggleMusicPanel, 300)">+ Add Music</button>
+    </div>
+  </div>
+
+  <!-- Nav controls -->
+  <div class="coach-controls">
+    <button class="coach-btn coach-btn-prev" onclick="coachPrev()">← Prev</button>
+    <button class="coach-btn coach-btn-next" onclick="coachNext()">Next →</button>
+    <button class="coach-btn coach-btn-timer" id="coachTimerBtn" onclick="toggleExTimer()">Timer</button>
+    <button class="coach-btn coach-btn-exit" onclick="closeCoachView()">Exit</button>
+  </div>
+
+  <!-- Section break / workout complete overlay -->
+  <div id="coachBreak" class="coach-break-screen">
+    <div class="coach-break-badge" id="coachBreakBadge">SECTION COMPLETE</div>
+    <div class="coach-break-next-label" id="coachBreakNextLabel">NEXT SECTION</div>
+    <div class="coach-break-next-name" id="coachBreakNextName"></div>
+    <div class="coach-break-countdown" id="coachBreakCountdown">10</div>
+    <div class="coach-break-sub" id="coachBreakSub">seconds until next section</div>
+    <button class="coach-btn coach-btn-next coach-break-action-btn" id="coachBreakBtn" onclick="skipBreak()">Let's Go →</button>
+    <button class="coach-btn coach-btn-exit" style="margin-top:10px" onclick="closeCoachView()">Exit</button>
+  </div>
+</div>
+
+<!-- Exercise Detail Modal -->
+<div class="modal-backdrop" id="exerciseModal">
+  <div class="modal exercise-detail-modal">
+    <div class="ex-detail-header">
+      <div>
+        <div class="ex-detail-cat" id="exDetailCat">LEGS</div>
+        <div class="ex-detail-name" id="exDetailName">SQUAT</div>
+      </div>
+      <button class="ex-detail-close" onclick="closeExerciseModal()">×</button>
+    </div>
+    <div class="ex-detail-muscles" id="exDetailMuscles"></div>
+    <div class="ex-detail-label">COACHING CUES</div>
+    <ul class="ex-detail-cues" id="exDetailCues"></ul>
+    <div class="ex-detail-actions">
+      <button class="btn btn-ghost" onclick="openExerciseYouTube()">Watch on YouTube</button>
+      <button class="btn btn-accent" onclick="addExerciseFromModal()">+ Add to Session</button>
+    </div>
+  </div>
+</div>
+
+<!-- Pick Section Modal -->
+<div class="modal-backdrop" id="pickSectionModal">
+  <div class="modal pick-modal">
+    <h3>ADD TO SECTION</h3>
+    <span class="pick-ex-name" id="pickSectionName"></span>
+    <div id="pickSectionList"></div>
+    <div style="margin-top:10px;"><button class="btn btn-ghost" style="width:100%;" onclick="closePickSection()">Cancel</button></div>
+  </div>
+</div>
+
+<!-- Crest Modal -->
+<div class="modal-backdrop" id="crestModal">
+  <div class="modal crest-modal">
+    <h2>WORKOUT <span>TEMPLATES</span></h2>
+    <p class="crest-subtitle">Built-in templates randomize exercises each time ↺</p>
+    <div class="crest-options">
+      <div class="crest-option" id="crest-upper" onclick="selectCrest('upper')">
+        <div class="crest-option-icon">💪</div>
+        <div class="crest-option-title">Upper Body</div>
+        <div class="crest-option-desc">Chest, shoulders, arms & core</div>
+      </div>
+      <div class="crest-option" id="crest-lower" onclick="selectCrest('lower')">
+        <div class="crest-option-icon">🦵</div>
+        <div class="crest-option-title">Lower Body</div>
+        <div class="crest-option-desc">Glutes, quads, hamstrings & burnout</div>
+      </div>
+    </div>
+    <div class="crest-preview" id="crestPreview"></div>
+    <div id="customTemplatesSection" style="display:none;margin-top:16px;">
+      <div style="font-size:0.75rem;font-family:'Bebas Neue',sans-serif;letter-spacing:1.5px;color:var(--muted);margin-bottom:8px;border-top:1px solid var(--border);padding-top:14px;">YOUR TEMPLATES</div>
+      <div class="saved-list" id="customTemplatesList"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeCrestModal()">Close</button>
+      <button class="btn btn-ghost" style="color:#a855f7;border-color:#a855f744;" onclick="closeCrestModal();openSaveTemplateModal()">Save as Template</button>
+      <button class="btn btn-crest" id="crestLoadBtn" onclick="loadCrestWorkout()" style="display:none;">Load Template →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Past Workouts Modal -->
+<div class="modal-backdrop" id="pastModal">
+  <div class="modal" style="max-width:460px;">
+    <h2>PAST WORKOUTS</h2>
+    <div class="saved-list" id="pastList"></div>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closePastModal()">Close</button></div>
+  </div>
+</div>
+
+<!-- Saved Workouts Modal -->
+<div class="modal-backdrop" id="savedModal">
+  <div class="modal" style="max-width:460px;">
+    <h2>SAVED SESSIONS</h2>
+    <div class="saved-list" id="savedList"></div>
+    <div id="savedEmpty" style="color:var(--muted);font-size:0.82rem;padding:20px 0;display:none;">No saved sessions yet. Build one and hit Save!</div>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeSavedModal()">Close</button></div>
+  </div>
+</div>
+
+<!-- Split Sets Modal -->
+<div class="modal-backdrop" id="splitModal">
+  <div class="modal" style="max-width:340px;">
+    <h2>SPLIT INTO SETS</h2>
+    <p style="color:var(--muted);font-size:0.82rem;margin-bottom:16px;">How many exercises per set?</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;" id="splitOptions">
+      <button class="btn btn-ghost" onclick="doSplit(2)">2 per set</button>
+      <button class="btn btn-ghost" onclick="doSplit(3)">3 per set</button>
+      <button class="btn btn-ghost" onclick="doSplit(4)">4 per set</button>
+      <button class="btn btn-ghost" onclick="doSplit(5)">5 per set</button>
+    </div>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeSplitModal()">Cancel</button></div>
+  </div>
+</div>
+
+<!-- Combo Builder Modal -->
+<div class="modal-backdrop" id="comboModal">
+  <div class="modal combo-modal">
+    <h2>COMBO MOVE BUILDER</h2>
+    <p class="combo-subtitle">Pick 2–4 exercises to chain into one combo move. They'll appear as a single entry in your session.</p>
+    <input class="combo-search" id="comboSearch" type="text" placeholder="Search exercises..." oninput="renderComboList()">
+    <div class="combo-ex-grid" id="comboExGrid"></div>
+    <div class="combo-preview" id="comboPreview">
+      <div class="combo-preview-label">COMBO PREVIEW</div>
+      <div class="combo-preview-empty" id="comboPreviewEmpty">Select 2 or more exercises above</div>
+      <div class="combo-preview-name" id="comboPreviewName" style="display:none;"></div>
+    </div>
+    <div style="margin-bottom:4px;font-size:0.72rem;color:var(--muted);">Custom name (optional)</div>
+    <input class="combo-name-input" id="comboCustomName" type="text" placeholder="e.g. Squat + Curl — leave blank to auto-generate" oninput="updateComboPreview()">
+    <div class="combo-hint">Auto-name joins moves with " + " · you can edit anytime in the builder</div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeComboBuilder()">Cancel</button>
+      <button class="btn" id="comboAddBtn" style="background:var(--accent2);color:#000;font-weight:700;" onclick="addComboToSession()" disabled>Add to Session →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Pack Modal -->
+<div class="modal-backdrop" id="packModal">
+  <div class="modal" style="max-width:520px;">
+    <h2>DISCIPLINE PACKS</h2>
+    <p style="color:var(--muted);font-size:0.8rem;margin-bottom:16px;">Install curated exercises for your class type. Installed packs appear in your library alongside your custom exercises.</p>
+    <div class="pack-grid" id="packGrid"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closePackModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Library Settings Modal -->
+<div class="modal-backdrop" id="libSettingsModal">
+  <div class="modal" style="max-width:360px;">
+    <h2>LIBRARY SETTINGS</h2>
+    <p style="color:var(--muted);font-size:0.78rem;margin-bottom:14px;">Rename category tabs to match your class style.</p>
+    <div id="catLabelInputs"></div>
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-desc">Hide built-in gym library</div>
+        <div class="toggle-sub">Show only packs & custom exercises</div>
+      </div>
+      <button class="toggle-btn" id="hideBuiltinToggle" onclick="toggleHideBuiltIn()"></button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="resetCatLabels()">Reset Labels</button>
+      <button class="btn btn-accent" onclick="saveLibSettings()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Save Template Modal -->
+<div class="modal-backdrop" id="saveTemplateModal">
+  <div class="modal" style="max-width:340px;">
+    <h2>SAVE TEMPLATE</h2>
+    <div style="margin-bottom:18px;">
+      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px;">TEMPLATE NAME</div>
+      <input class="combo-name-input" id="templateNameInput" type="text" placeholder="e.g. My Leg Day" maxlength="50">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeSaveTemplateModal()">Cancel</button>
+      <button class="btn btn-accent" onclick="confirmSaveTemplate()">Save Template</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Custom Exercise Modal -->
+<div class="modal-backdrop" id="addExModal">
+  <div class="modal" style="max-width:360px;">
+    <h2>ADD EXERCISE</h2>
+    <div style="margin-bottom:12px;">
+      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px;">EXERCISE NAME</div>
+      <input class="combo-name-input" id="newExName" type="text" placeholder="e.g. Kettlebell Swing" maxlength="60">
+    </div>
+    <div style="margin-bottom:18px;">
+      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px;">CATEGORY</div>
+      <select class="cat-select" id="newExCat">
+        <option value="warmup">Warm Up</option>
+        <option value="legs">Legs</option>
+        <option value="upper">Upper</option>
+        <option value="core">Core</option>
+        <option value="cardio">Cardio</option>
+        <option value="full">Full Body</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeAddExModal()">Cancel</button>
+      <button class="btn btn-accent" onclick="saveNewExercise()">Add Exercise</button>
+    </div>
+  </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal-backdrop" id="exportModal">
+  <div class="modal" style="max-width:560px;">
+    <h2>WORKOUT PLAN</h2>
+    <div class="export-text" id="exportContent"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeExport()">Close</button>
+      <button class="btn btn-accent" onclick="copyExport()">Copy to Clipboard</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────
+const EXERCISES = [
+  // ── WARM UP ──
+  { name: "Quick Squats", cat: "warmup" },
+  { name: "Side Lunges", cat: "warmup" },
+  { name: "Out and Ins", cat: "warmup" },
+  { name: "Up Downs", cat: "warmup" },
+  { name: "Reverse Lunge Pulse", cat: "warmup" },
+  { name: "Front Lunge to Side Lunge", cat: "warmup" },
+  { name: "Deadlift to Upright Row", cat: "warmup" },
+  { name: "Hip Circles", cat: "warmup" },
+  { name: "Arm Circles", cat: "warmup" },
+  { name: "Torso Twists", cat: "warmup" },
+  { name: "Inchworms", cat: "warmup" },
+  { name: "Walkouts", cat: "warmup" },
+  { name: "Lateral Shuffles", cat: "warmup" },
+  { name: "Knee Hugs", cat: "warmup" },
+  { name: "Leg Swings", cat: "warmup" },
+  { name: "Good Mornings", cat: "warmup" },
+  { name: "Standing Cat Cow", cat: "warmup" },
+  { name: "Squat to Stand", cat: "warmup" },
+  { name: "Alternating Toe Touches", cat: "warmup" },
+  { name: "March in Place", cat: "warmup" },
+  { name: "Slow Bodyweight Squats", cat: "warmup" },
+  { name: "Hip Flexor Stretch with Reach", cat: "warmup" },
+  // ── LEGS ──
+  { name: "Front Lunge Shoulder Raise", cat: "legs" },
+  { name: "Reverse Lunges", cat: "legs" },
+  { name: "Side Lunge with Twist", cat: "legs" },
+  { name: "Side Lunge with Wood Chopper", cat: "legs" },
+  { name: "Squat Pulse x3 Alternate Side Lunges", cat: "legs" },
+  { name: "Deadlift with Squat", cat: "legs" },
+  { name: "Reverse Lunge with Chest Press", cat: "legs" },
+  { name: "Squat Thrusters", cat: "legs" },
+  { name: "Wide Squat with High Row", cat: "legs" },
+  { name: "Deadlift to Front Lunge", cat: "legs" },
+  { name: "Squat Pulse", cat: "legs" },
+  { name: "Close Stance Squat Pulse x2 with Reverse Lunge", cat: "legs" },
+  { name: "Single Leg Deadlift", cat: "legs" },
+  { name: "Reverse Lunge with Shoulder Press x2", cat: "legs" },
+  { name: "Close Stance Squat to Wide Squat", cat: "legs" },
+  { name: "Reverse Lunge Back Foot on Step", cat: "legs" },
+  { name: "Squat with 2 Chest Press", cat: "legs" },
+  { name: "Front Lunge Pulse with Curtsy Lunge", cat: "legs" },
+  { name: "Weight Up with Knee Drive", cat: "legs" },
+  { name: "Deadlift with Squat Press", cat: "legs" },
+  { name: "Reverse Lunge Loop with Shoulder Press x3", cat: "legs" },
+  { name: "Side Lunge with Chest Press", cat: "legs" },
+  { name: "Close Stance Squat Hold", cat: "legs" },
+  { name: "Alternating Reverse Lunge Pulses", cat: "legs" },
+  { name: "Close Stance Squat Hammer Curl Press Out x2", cat: "legs" },
+  { name: "Squat Pulse 3 to Lunge Pulse 3", cat: "legs" },
+  { name: "Side Lunge to Curtsy Lunge", cat: "legs" },
+  { name: "Reverse Lunge to Side Lunge", cat: "legs" },
+  { name: "Sumo Squat", cat: "legs" },
+  { name: "Sumo Squat Pulse", cat: "legs" },
+  { name: "Sumo Squat with Upright Row", cat: "legs" },
+  { name: "Goblet Squat", cat: "legs" },
+  { name: "Goblet Squat Pulse", cat: "legs" },
+  { name: "Stiff Leg Deadlift", cat: "legs" },
+  { name: "Romanian Deadlift", cat: "legs" },
+  { name: "Walking Lunges", cat: "legs" },
+  { name: "Curtsy Lunge", cat: "legs" },
+  { name: "Curtsy Lunge with Bicep Curl", cat: "legs" },
+  { name: "Lateral Lunge", cat: "legs" },
+  { name: "Step Ups with Knee Drive", cat: "legs" },
+  { name: "Glute Bridge", cat: "legs" },
+  { name: "Glute Bridge with Chest Press", cat: "legs" },
+  { name: "Single Leg Glute Bridge", cat: "legs" },
+  { name: "Split Squat", cat: "legs" },
+  { name: "Bulgarian Split Squat", cat: "legs" },
+  { name: "Calf Raises", cat: "legs" },
+  { name: "Single Leg Calf Raise", cat: "legs" },
+  { name: "Squat to Arnold Press", cat: "legs" },
+  { name: "Pulse Lunge with Overhead Hold", cat: "legs" },
+  { name: "Deadlift to Bent Over Row", cat: "legs" },
+  { name: "Alternating Curtsy Lunge", cat: "legs" },
+  { name: "Squat with Lateral Raise", cat: "legs" },
+  { name: "Rear Lunge with Front Kick", cat: "legs" },
+  { name: "Squat Hold", cat: "legs" },
+  { name: "Weighted Hip Thrust", cat: "legs" },
+  { name: "Staggered Stance Deadlift", cat: "legs" },
+  // ── UPPER ──
+  { name: "Hammer Curl Chest Press", cat: "upper" },
+  { name: "Hammer Curl to Bent Over Row x2", cat: "upper" },
+  { name: "Curl to Underhand Front Raise", cat: "upper" },
+  { name: "Squat Press x2", cat: "upper" },
+  { name: "Deadlift High Row", cat: "upper" },
+  { name: "Front Hold with Shoulder Raise", cat: "upper" },
+  { name: "Reverse Lunge with Curl", cat: "upper" },
+  { name: "Curl Hold Alternate Sides", cat: "upper" },
+  { name: "Push Ups", cat: "upper" },
+  { name: "Alternating Shoulder Press Chest Fly", cat: "upper" },
+  { name: "Alternating Butterfly", cat: "upper" },
+  { name: "Chest Pull Over", cat: "upper" },
+  { name: "Skull Crushers", cat: "upper" },
+  { name: "Hammer Curl to Front Raise", cat: "upper" },
+  { name: "Front Lunge with Twist", cat: "upper" },
+  { name: "Close Stance Squat with Chest Press x2", cat: "upper" },
+  { name: "Reverse Curl with Front Raise", cat: "upper" },
+  { name: "Hammer Curl to Press Away", cat: "upper" },
+  { name: "DB to Sky x5 Then Twists", cat: "upper" },
+  { name: "Front Lunge Shoulder Press x2", cat: "upper" },
+  { name: "Bicep Curl", cat: "upper" },
+  { name: "Alternating Bicep Curl", cat: "upper" },
+  { name: "Concentration Curl", cat: "upper" },
+  { name: "Reverse Grip Curl", cat: "upper" },
+  { name: "Zottman Curl", cat: "upper" },
+  { name: "Overhead Tricep Extension", cat: "upper" },
+  { name: "Tricep Kickback", cat: "upper" },
+  { name: "Single Arm Tricep Kickback", cat: "upper" },
+  { name: "Shoulder Press", cat: "upper" },
+  { name: "Arnold Press", cat: "upper" },
+  { name: "Lateral Raise", cat: "upper" },
+  { name: "Front Raise", cat: "upper" },
+  { name: "Rear Delt Fly", cat: "upper" },
+  { name: "Bent Over Row", cat: "upper" },
+  { name: "Single Arm Row", cat: "upper" },
+  { name: "Renegade Row", cat: "upper" },
+  { name: "Upright Row", cat: "upper" },
+  { name: "Chest Fly", cat: "upper" },
+  { name: "Incline Chest Press", cat: "upper" },
+  { name: "Close Grip Press", cat: "upper" },
+  { name: "Tricep Dips", cat: "upper" },
+  { name: "Wide Push Up", cat: "upper" },
+  { name: "Diamond Push Up", cat: "upper" },
+  { name: "Push Up to Row", cat: "upper" },
+  { name: "T Push Up", cat: "upper" },
+  { name: "Curl to Press", cat: "upper" },
+  { name: "Lateral Raise to Front Raise", cat: "upper" },
+  { name: "Around the World", cat: "upper" },
+  { name: "Bent Over Reverse Fly", cat: "upper" },
+  { name: "Scarecrow", cat: "upper" },
+  { name: "W Curl", cat: "upper" },
+  { name: "Chest Squeeze Press", cat: "upper" },
+  { name: "Alternating Front Raise", cat: "upper" },
+  { name: "Overhead Press with Twist", cat: "upper" },
+  { name: "Cross Body Curl", cat: "upper" },
+  { name: "Hammer Curl", cat: "upper" },
+  { name: "Preacher Curl", cat: "upper" },
+  { name: "Spider Curl", cat: "upper" },
+  { name: "Band Pull Apart", cat: "upper" },
+  // ── CORE ──
+  { name: "Knees to Elbows", cat: "core" },
+  { name: "Leg Raises", cat: "core" },
+  { name: "Crunch Twists", cat: "core" },
+  { name: "Flutter Kicks", cat: "core" },
+  { name: "Russian Twists", cat: "core" },
+  { name: "Knees to Chest then Russian Twists", cat: "core" },
+  { name: "Plank Hold", cat: "core" },
+  { name: "Plank with Shoulder Tap", cat: "core" },
+  { name: "Plank with Hip Dip", cat: "core" },
+  { name: "Side Plank", cat: "core" },
+  { name: "Bicycle Crunches", cat: "core" },
+  { name: "Dead Bug", cat: "core" },
+  { name: "Hollow Body Hold", cat: "core" },
+  { name: "Toe Taps", cat: "core" },
+  { name: "Seated Knee Tucks", cat: "core" },
+  { name: "V Sit Hold", cat: "core" },
+  { name: "Reverse Crunch", cat: "core" },
+  { name: "Jackknife", cat: "core" },
+  { name: "Sit Ups", cat: "core" },
+  { name: "Weighted Sit Ups", cat: "core" },
+  { name: "Oblique Crunches", cat: "core" },
+  { name: "Windshield Wipers", cat: "core" },
+  { name: "Superman Hold", cat: "core" },
+  { name: "Bird Dog", cat: "core" },
+  { name: "DB Woodchop", cat: "core" },
+  { name: "Standing Oblique Crunch", cat: "core" },
+  { name: "Pallof Press", cat: "core" },
+  { name: "Around the World Core", cat: "core" },
+  { name: "Long Lever Plank", cat: "core" },
+  { name: "Ab Rollout", cat: "core" },
+  { name: "Scissor Kicks", cat: "core" },
+  // ── CARDIO ──
+  { name: "Mountain Climbers", cat: "cardio" },
+  { name: "Weight Marches", cat: "cardio" },
+  { name: "Burpees", cat: "cardio" },
+  { name: "High Knees", cat: "cardio" },
+  { name: "Jump Squats", cat: "cardio" },
+  { name: "Skaters", cat: "cardio" },
+  { name: "Plank Jacks", cat: "cardio" },
+  { name: "Jumping Jacks", cat: "cardio" },
+  { name: "Star Jumps", cat: "cardio" },
+  { name: "Speed Skaters", cat: "cardio" },
+  { name: "Lunge Jumps", cat: "cardio" },
+  { name: "Burpee to Tuck Jump", cat: "cardio" },
+  { name: "Fast Feet", cat: "cardio" },
+  { name: "Lateral Hops", cat: "cardio" },
+  { name: "Butt Kicks", cat: "cardio" },
+  { name: "Bear Crawl", cat: "cardio" },
+  { name: "Frogger", cat: "cardio" },
+  { name: "Shuffle to Squat", cat: "cardio" },
+  { name: "Box Jumps", cat: "cardio" },
+  { name: "Tuck Jumps", cat: "cardio" },
+  { name: "Ice Skaters", cat: "cardio" },
+  { name: "180 Jump Squat", cat: "cardio" },
+  // ── FULL BODY ──
+  { name: "Front Lunge to Side Lunge", cat: "full" },
+  { name: "Thruster", cat: "full" },
+  { name: "Dumbbell Snatch", cat: "full" },
+  { name: "Clean and Press", cat: "full" },
+  { name: "Squat to Overhead Press", cat: "full" },
+  { name: "Deadlift to Shoulder Press", cat: "full" },
+  { name: "Lunge with Bicep Curl", cat: "full" },
+  { name: "Lunge with Lateral Raise", cat: "full" },
+  { name: "Squat to Row", cat: "full" },
+  { name: "Deadlift to High Pull", cat: "full" },
+  { name: "Turkish Get Up", cat: "full" },
+  { name: "Man Makers", cat: "full" },
+  { name: "Dumbbell Complex", cat: "full" },
+  { name: "Lateral Lunge to Curl", cat: "full" },
+  { name: "Squat to Curl to Press", cat: "full" },
+  { name: "Deadlift to Upright Row to Press", cat: "full" },
+  { name: "Lunge with Tricep Kickback", cat: "full" },
+  { name: "Step Up to Shoulder Press", cat: "full" },
+  { name: "Reverse Lunge to Front Raise", cat: "full" },
+  { name: "Swing to Squat", cat: "full" },
+  { name: "Power Clean", cat: "full" },
+  { name: "Suitcase Carry", cat: "full" },
+  { name: "Farmers Carry", cat: "full" },
+];
+
+// ── EXERCISE CUES ──────────────────────────────────────────────
+const CAT_FALLBACK = {
+  warmup: { muscles:"Full body", cues:["Move through the full range of motion","Let muscles warm progressively — don't force depth","Focus on body awareness and breathing","Build intensity gradually"] },
+  legs:   { muscles:"Quads · Glutes · Hamstrings · Calves", cues:["Core braced throughout","Drive through your heels","Control the lowering phase — don't drop","Full range of motion before adding load"] },
+  upper:  { muscles:"Chest · Shoulders · Arms · Back", cues:["Retract shoulder blades before each rep","Breathe out on the push or pull","Keep core tight — don't let lower back arch","Full range of motion — slow on the way back"] },
+  core:   { muscles:"Abs · Obliques · Lower Back", cues:["Press lower back to the floor on all ground work","Exhale sharply on the contraction","Move with control — eliminate momentum","Quality over quantity — stop when form breaks"] },
+  cardio: { muscles:"Full body / cardiovascular", cues:["Land softly — absorb impact through bent knees","Drive with your arms to power your legs","Stay light on your feet","Breathe rhythmically — find a sustainable pace"] },
+  full:   { muscles:"Full body", cues:["Brace core before every single rep","Move with intention — not speed","Control each phase of the movement","Maintain posture as fatigue builds"] },
+};
+const EXERCISE_CUES = {
+  // ── WARM UP
+  "Inchworms":                  { muscles:"Hamstrings · Core · Shoulders", cues:["Walk hands out to a full plank — don't rush","Keep hips from hiking as you extend","Hold plank for one breath before walking back","Feel the hamstrings load on the walkout"] },
+  "Walkouts":                   { muscles:"Hamstrings · Core · Shoulders", cues:["Hinge from hips — keep legs nearly straight","Walk hands forward until hips are neutral","Pause in plank — brace everything","Walk feet up to hands with control"] },
+  "Leg Swings":                 { muscles:"Hip Flexors · Glutes · Hamstrings", cues:["Light fingertip touch on wall for balance","Let the leg swing freely — don't force","Build amplitude over 5-6 reps","Keep standing leg softly bent"] },
+  "Hip Circles":                { muscles:"Hip Flexors · Glutes · Hip Rotators", cues:["Maximize the circumference each circle","Move slowly and deliberately","Equal reps both directions","Hands on hips to feel the movement"] },
+  "Good Mornings":              { muscles:"Hamstrings · Glutes · Lower Back", cues:["Soft bend in knees throughout","Hinge from hips — not waist","Neutral spine — don't round lower back","Feel the hamstrings stretch before returning"] },
+  "Squat to Stand":             { muscles:"Hamstrings · Quads · Thoracic Spine", cues:["Grip toes and sink hips down","Pull chest up between knees","Drive hips up — straighten legs slowly","Feel the thoracic extension at the top"] },
+  // ── LEGS
+  "Goblet Squat":               { muscles:"Quads · Glutes · Core", cues:["Hold weight tight to chest — elbows inside knees at bottom","Push knees out over little toes","Heels grounded — don't let them lift","Upright chest throughout — this isn't a hinge"] },
+  "Sumo Squat":                 { muscles:"Inner Thighs · Glutes · Quads", cues:["Wide stance — toes pointed out 45°","Push knees out hard in the direction of toes","Weight through heels and mid-foot","Chest tall — don't lean forward at the bottom"] },
+  "Sumo Squat Pulse":           { muscles:"Inner Thighs · Glutes · Quads", cues:["Stay below parallel — don't rise between pulses","Toes out wide, knees track over toes","Squeeze inner thighs on each pulse","Keep chest up — resist the urge to lean"] },
+  "Romanian Deadlift":          { muscles:"Hamstrings · Glutes · Lower Back", cues:["This is a hinge — not a squat","Soft bend in knees — hold it throughout","Push hips back as weights slide down legs","Feel the hamstring stretch — then drive hips forward"] },
+  "Stiff Leg Deadlift":         { muscles:"Hamstrings · Glutes", cues:["Minimal knee bend — straighter than RDL","Hinge from hip socket, not waist","Shoulders back and down — neutral spine","Slow descent to maximize hamstring time under tension"] },
+  "Bulgarian Split Squat":      { muscles:"Quads · Glutes · Hip Flexors", cues:["Rear foot elevated — laces down on bench","Front foot far enough forward — shin stays vertical","Drop rear knee toward floor with control","Drive through heel and mid-foot of front foot"] },
+  "Split Squat":                { muscles:"Quads · Glutes · Hip Flexors", cues:["Feet staggered — both feet flat","Drop straight down — not forward","Front shin stays vertical","Push through the front heel to return"] },
+  "Glute Bridge":               { muscles:"Glutes · Hamstrings · Core", cues:["Feet hip-width, heels close to glutes","Drive heels into floor and squeeze glutes hard","Hold one full second at the top","Lower slowly — don't crash down"] },
+  "Single Leg Glute Bridge":    { muscles:"Glutes · Hamstrings · Core", cues:["Drive the working heel into the floor","Keep hips level — don't rotate","Extend free leg straight or bent at 90°","Squeeze glute at top for one full second"] },
+  "Weighted Hip Thrust":        { muscles:"Glutes · Hamstrings", cues:["Upper back on bench edge — not neck","Weight on hip crease — protect with padding","Drive through both heels simultaneously","Posteriorly tilt pelvis at the top — tuck the tailbone"] },
+  "Walking Lunges":             { muscles:"Quads · Glutes · Hamstrings", cues:["Long stride — back knee drops to floor","Front knee stays behind toes","Upright torso — don't lean forward","Step through to the next rep with control"] },
+  "Curtsy Lunge":               { muscles:"Glutes · Outer Hip · Quads", cues:["Step diagonally behind — cross midline","Front knee bends 90° — tracks over toes","Keep hips square and facing forward","Control the step — no reaching or collapsing"] },
+  "Reverse Lunges":             { muscles:"Quads · Glutes · Hamstrings", cues:["Step straight back — not out to side","Drop rear knee toward floor","Front shin stays vertical","Drive through front heel to return"] },
+  "Single Leg Deadlift":        { muscles:"Hamstrings · Glutes · Core", cues:["Standing leg is softly bent — not locked","Hinge from hip — free leg follows torso angle","Keep hips level — resist rotation","Return slowly — don't swing the free leg back"] },
+  "Lateral Lunge":              { muscles:"Inner Thighs · Glutes · Quads", cues:["Wide step to the side — toes forward","Sit into hip of bent leg","Keep straight leg extended","Drive through heel of bent leg to return"] },
+  "Calf Raises":                { muscles:"Gastrocnemius · Soleus", cues:["Full range — heel below step level at bottom","Rise as high as possible on balls of feet","Squeeze calves hard at the top","3-count lowering phase for maximum time under tension"] },
+  "Squat Hold":                 { muscles:"Quads · Glutes · Core", cues:["Sink to parallel or below","Weight through heels — toes can lift slightly","Chest up — use arms for counterbalance","Breathe steadily — don't hold your breath"] },
+  "Step Ups with Knee Drive":   { muscles:"Quads · Glutes · Hip Flexors", cues:["Drive through the heel of the working leg","Don't push off the back foot","Drive the free knee up high at the top","Step down with control — same foot each rep"] },
+  // ── UPPER
+  "Push Ups":                   { muscles:"Chest · Triceps · Shoulders · Core", cues:["Hands slightly wider than shoulders","Elbows at 45° — not flared out","Lower chest to floor — full range","Push through palms and fully extend arms at top"] },
+  "Wide Push Up":               { muscles:"Chest · Shoulders · Triceps", cues:["Hands well outside shoulder-width","Elbows flare slightly wider on descent","Lower chest between hands","Squeeze pecs to drive back up"] },
+  "Diamond Push Up":            { muscles:"Triceps · Inner Chest", cues:["Thumbs and index fingers form a diamond shape","Elbows track back along your sides — not out","Lower chest toward hands","Focus on squeezing triceps at full extension"] },
+  "Shoulder Press":             { muscles:"Deltoids · Triceps · Upper Traps", cues:["Start at ear level — not on shoulders","Press straight overhead — slight backward arc is fine","Don't fully lock elbows — keep tension","Lower slowly back to start position"] },
+  "Arnold Press":               { muscles:"All three deltoid heads · Triceps", cues:["Start with palms facing you at chin level","Rotate palms outward as you press up","Full extension overhead — control the rotation","Reverse rotation on the way back down"] },
+  "Lateral Raise":              { muscles:"Medial Deltoids", cues:["Slight bend in elbows throughout","Lead with elbows — not hands or wrists","Stop at shoulder height — no higher","3-second lowering phase — resist gravity"] },
+  "Front Raise":                { muscles:"Anterior Deltoids", cues:["Slight bend in elbows","Raise to eye level — not above","Avoid swinging from hips","Slow and deliberate — both up and down"] },
+  "Rear Delt Fly":              { muscles:"Rear Deltoids · Rhomboids", cues:["Hinge forward 45° — maintain this throughout","Slight bend in elbows — hold it","Lead with elbows — squeeze shoulder blades at top","Control the lowering — resist gravity"] },
+  "Bent Over Row":              { muscles:"Lats · Rhomboids · Biceps", cues:["Hinge to 45° — maintain flat back throughout","Retract shoulder blades before pulling","Pull to lower ribs — not upper chest","Elbows back — not flared wide"] },
+  "Single Arm Row":             { muscles:"Lats · Rhomboids · Biceps", cues:["Support knee or hand on bench — neutral spine","Pull elbow straight back along ribs","Hold squeeze at top for one beat","Lower slowly — full stretch at bottom"] },
+  "Renegade Row":               { muscles:"Lats · Core · Shoulders", cues:["Full plank — hips stay square throughout","Row one arm while pressing into opposite side","Minimize hip rotation — brace hard","Feet slightly wider for a more stable base"] },
+  "Upright Row":                { muscles:"Upper Traps · Medial Deltoids · Biceps", cues:["Grip shoulder-width or slightly narrower","Lead with elbows — they rise above hands","Pull to chin level — no higher","Lower with control — don't drop"] },
+  "Bicep Curl":                 { muscles:"Biceps · Brachialis", cues:["Elbows stay glued to your sides","Full extension at the bottom — don't cheat the range","Supinate wrist on the way up","Slow 3-count lowering — this is where gains are made"] },
+  "Hammer Curl":                { muscles:"Biceps · Brachialis · Forearms", cues:["Neutral grip — palms face each other throughout","Elbows stay at sides — no swinging","Squeeze at the top","Control the lowering phase"] },
+  "Concentration Curl":         { muscles:"Biceps · Brachialis", cues:["Elbow braced on inner thigh","Full extension at bottom","Slow — this is an isolation move","Focus on the squeeze at top, not the weight"] },
+  "Overhead Tricep Extension":  { muscles:"Triceps (Long Head)", cues:["Upper arms stay close to ears throughout","Lower weight behind head with control","Full extension overhead — squeeze at top","Elbows stay pointing forward — not flaring"] },
+  "Tricep Kickback":            { muscles:"Triceps", cues:["Hinge forward — upper arm parallel to floor","Extend fully — hold for one beat","Control the return — don't let it swing forward","Upper arm stays still — only forearm moves"] },
+  "Chest Fly":                  { muscles:"Chest · Anterior Deltoids", cues:["Slight bend in elbows — hold it throughout","Open wide on descent — feel the chest stretch","Drive elbows together — squeeze pecs to close","Keep lower back pressed down"] },
+  "Renegade Row":               { muscles:"Lats · Core · Shoulders", cues:["Full plank — hips stay square throughout","Row one arm while pressing into opposite side","Minimize hip rotation — brace hard","Feet slightly wider for a more stable base"] },
+  // ── CORE
+  "Plank Hold":                 { muscles:"Transverse Abdominis · Glutes · Shoulders", cues:["Shoulders directly over wrists — not behind","Squeeze abs, glutes and quads simultaneously","Straight line — head to heels (use a mirror)","Breathe steadily — don't hold your breath"] },
+  "Plank with Shoulder Tap":    { muscles:"Core · Shoulders · Glutes", cues:["Feet slightly wider for stability","Tap fast and reset completely before next tap","Minimize hip rotation — brace before each tap","Avoid shifting weight — keep hips level"] },
+  "Side Plank":                 { muscles:"Obliques · Glutes · Shoulder Stabilizers", cues:["Stack feet or stagger for stability","Lift hips — no sagging toward floor","Drive the lower hip up on each breath out","Keep neck neutral — don't look down"] },
+  "Bicycle Crunches":           { muscles:"Obliques · Rectus Abdominis", cues:["Elbow to opposite knee — full rotation","Extend the non-working leg fully","Slow and controlled — not a race","Hands lightly behind head — don't pull neck"] },
+  "Dead Bug":                   { muscles:"Transverse Abdominis · Core Stability", cues:["Press lower back firmly to floor — keep it there","Exhale as you extend arm and leg","Move arm and opposite leg simultaneously","Don't let the lower back arch — stop before it does"] },
+  "Russian Twists":             { muscles:"Obliques · Transverse Abdominis", cues:["Lean back to 45° — hold that angle","Rotate through the torso — not just the arms","Pause at each side before switching","Feet elevated makes it harder — try both"] },
+  "Hollow Body Hold":           { muscles:"Transverse Abdominis · Hip Flexors", cues:["Lower back pressed firmly to floor","Arms overhead — legs straight and elevated","The lower you hold your legs, the harder it is","Hold tension throughout — don't relax at any point"] },
+  "Leg Raises":                 { muscles:"Lower Abs · Hip Flexors", cues:["Hands under glutes for lower back support","Lower legs slowly — don't let back arch","Legs stay together throughout","Raise straight overhead — pause before lowering"] },
+  "Flutter Kicks":              { muscles:"Lower Abs · Hip Flexors", cues:["Lower back stays pressed to floor","Small, fast alternating kicks — 6 inches off floor","Legs stay straight throughout","Breathe steadily — don't hold your breath"] },
+  "Reverse Crunch":             { muscles:"Lower Abs · Core", cues:["Curl hips off floor — not just knees to chest","No momentum — slow and deliberate","Lower hips with full control","Press hands into floor for stability"] },
+  "Bird Dog":                   { muscles:"Core · Glutes · Lower Back", cues:["Neutral spine — no arch or rounding","Extend opposite arm and leg simultaneously","Pause at top — squeeze glute","Return to center before switching — don't swing"] },
+  "Superman Hold":              { muscles:"Erector Spinae · Glutes · Upper Back", cues:["Lift chest AND legs simultaneously","Squeeze glutes hard throughout the hold","Keep neck neutral — gaze at floor","Don't strain to get higher — hold what you can"] },
+  "V Sit Hold":                 { muscles:"Abs · Hip Flexors", cues:["Balance on tailbone — find your tipping point","Legs elevated — aim for 45°","Arms extended forward for counterbalance","Breathe — don't clench and stop breathing"] },
+  // ── CARDIO
+  "Burpees":                    { muscles:"Full body · Cardiovascular", cues:["Land softly from the jump — knees bent","Chest to floor in the plank phase","Explosive hip extension on the way up","Stay light on feet throughout"] },
+  "Mountain Climbers":          { muscles:"Core · Shoulders · Cardiovascular", cues:["Full plank — hips stay down, not piking","Drive knees to chest with quick feet","Hips stay level — no side-to-side","Quick cadence — arms stay still"] },
+  "High Knees":                 { muscles:"Hip Flexors · Cardiovascular", cues:["Drive knees above hip height each time","Pump arms hard in opposition to legs","Land on balls of feet — not flat-footed","Tall posture — chest up, not hunched"] },
+  "Jump Squats":                { muscles:"Quads · Glutes · Cardiovascular", cues:["Load fully on the way down first","Explode through heels — not toes","Land softly with knees tracking over toes","Immediate rebound from the landing"] },
+  "Skaters":                    { muscles:"Glutes · Outer Hip · Cardiovascular", cues:["Lateral bound — push off outside foot","Land on one foot — stick it for a beat","Touch opposite hand toward landing foot","Drive side to side — build amplitude"] },
+  "Box Jumps":                  { muscles:"Quads · Glutes · Cardiovascular", cues:["Swing arms for momentum","Land softly — both feet together, knees bent","Full hip extension at the top","STEP down — don't jump down (saves your knees)"] },
+  "Tuck Jumps":                 { muscles:"Quads · Hip Flexors · Cardiovascular", cues:["Drive knees toward chest at peak of jump","Land softly with bent knees","Immediate rebound — stay springy","Arms drive the knees up"] },
+  "Star Jumps":                 { muscles:"Full body · Cardiovascular", cues:["Jump out wide — hands and feet simultaneously","Fully extend in the star position","Return to standing on landing","Stay light — spring from the balls of your feet"] },
+  "Fast Feet":                  { muscles:"Quads · Calves · Cardiovascular", cues:["Low quarter-squat position — stay there","Feet barely leave the floor — pitter-patter","Drive arms to keep the pace up","Chest up — don't look at your feet"] },
+  // ── FULL BODY
+  "Thruster":                   { muscles:"Quads · Glutes · Shoulders · Triceps", cues:["Front squat catches the weight at shoulders","Use leg drive to initiate the press — one fluid motion","Stay upright in the squat — no forward lean","Lock out overhead completely before lowering"] },
+  "Clean and Press":            { muscles:"Full body — posterior chain through overhead press", cues:["Explosive hip drive — not just an upright row","Catch weight at shoulders with fast elbows","Press overhead with residual leg drive","One smooth, connected movement"] },
+  "Turkish Get Up":             { muscles:"Full body · Core · Shoulder Stability", cues:["Keep the arm vertical throughout — eye on the weight","Move one step at a time — there are 6 phases","Press through heel of bent leg on the lunge phase","Reverse the exact sequence to return to floor"] },
+  "Man Makers":                 { muscles:"Full body — push / pull / legs in one rep", cues:["Push up first — chest to floor","Row each arm separately — keep hips square","Clean the weights to shoulders","Squat to standing then press overhead"] },
+  "Dumbbell Snatch":            { muscles:"Full body — posterior chain + overhead", cues:["Explosive hip drive — the power comes from legs and hips","Pull high then punch overhead in one motion","Catch with a fully locked arm","Soft landing — absorb into the knees"] },
+  "Deadlift to High Pull":      { muscles:"Hamstrings · Glutes · Upper Back · Shoulders", cues:["Hinge and pull in one fluid movement","Drive hips through fully before the shrug","Shrug hard then pull elbows high and wide","Lower under control — don't drop the weight"] },
+};
+
+const CAT_COLORS = { legs:"cat-legs", upper:"cat-upper", core:"cat-core", cardio:"cat-cardio", warmup:"cat-warmup", full:"cat-full" };
+const SEC_COLOR_CYCLE = ["set","warmup","abs","chest","burnout","default"];
+const GLOBAL_TIMERS = ["Off","30s","40s","45s","60s"];
+
+const PAST_WORKOUTS = [
+  { key:"may12", title:"MAY 12 SESSION", sections:[
+    { label:"WARM UP", color:"warmup", exercises:["Side Lunges","Hammer Curl Chest Press","Deadlift High Row","Reverse Lunges"], note:"" },
+    { label:"SET 1", color:"set", exercises:["Front Lunge Shoulder Raise","Squat Press x2","Curl to Underhand Front Raise","Knees to Elbows"], note:"" },
+    { label:"SET 2", color:"set", exercises:["Squat Pulse x3 Alternate Side Lunges","Deadlift with Squat","Reverse Lunge with Chest Press"], note:"" },
+    { label:"SET 3", color:"set", exercises:["Squat Thrusters","Knees to Elbows","Mountain Climbers"], note:"" },
+    { label:"ABS", color:"abs", exercises:["Leg Raises","Crunch Twists","Flutter Kicks"], note:"" },
+  ]},
+  { key:"apr28", title:"APRIL 28 SESSION", sections:[
+    { label:"WARM UP", color:"warmup", exercises:["Wide Squat with High Row","Front Lunge to Side Lunge","Out and Ins"], note:"" },
+    { label:"SET 1", color:"set", exercises:["Deadlift to Front Lunge","Squat Pulse","Side Lunge with Wood Chopper"], note:"" },
+    { label:"SET 2", color:"set", exercises:["Reverse Lunge with Shoulder Press x2","Single Leg Deadlift","Close Stance Squat Pulse x2 with Reverse Lunge"], note:"" },
+    { label:"SET 3", color:"set", exercises:["Hammer Curl to Bent Over Row x2","Reverse Lunge Back Foot on Step","Close Stance Squat to Wide Squat"], note:"" },
+    { label:"CORE", color:"abs", exercises:["DB to Sky x5 Then Twists","Knees to Chest then Russian Twists"], note:"" },
+  ]},
+  { key:"apr7", title:"APRIL 7 SESSION", sections:[
+    { label:"WARM UP", color:"warmup", exercises:["Quick Squats","Front Lunge to Side Lunge","Out and Ins","Deadlift to Upright Row","Reverse Lunge Pulse","Up Downs"], note:"" },
+    { label:"SET 1", color:"set", exercises:["Close Stance Squat Hammer Curl Press Out x2","Squat Pulse 3 to Lunge Pulse 3","Deadlift to Front Lunge","Mountain Climbers"], note:"" },
+    { label:"SET 2", color:"set", exercises:["Front Hold with Shoulder Raise","Reverse Lunge with Curl","Curl Hold Alternate Sides","Push Ups"], note:"" },
+    { label:"SET 3", color:"set", exercises:["Side Lunge to Curtsy Lunge","Alternating Shoulder Press Chest Fly","Knees to Elbows"], note:"" },
+    { label:"ABS & CHEST", color:"chest", exercises:["Alternating Butterfly","Chest Pull Over","Skull Crushers","Leg Raises"], note:"" },
+  ]},
+];
+
+const CREST_WORKOUTS = {
+  upper: { title:"UPPER BODY", sections:[
+    { label:"WARM UP", color:"warmup", exercises:["Quick Squats","Out and Ins","Up Downs","Deadlift to Upright Row"], note:"Light warm up — keep it flowing" },
+    { label:"SET 1 — CHEST & SHOULDERS", color:"chest", exercises:["Hammer Curl Chest Press","Front Hold with Shoulder Raise","Alternating Shoulder Press Chest Fly","Push Ups"], note:"" },
+    { label:"SET 2 — ARMS", color:"set", exercises:["Hammer Curl to Bent Over Row x2","Curl to Underhand Front Raise","Curl Hold Alternate Sides","Hammer Curl to Press Away"], note:"" },
+    { label:"SET 3 — CHEST FINISHER", color:"burnout", exercises:["Alternating Butterfly","Chest Pull Over","Skull Crushers","Squat Press x2"], note:"Final push!" },
+    { label:"ABS", color:"abs", exercises:["Knees to Elbows","Crunch Twists","Flutter Kicks","Russian Twists"], note:"" },
+  ]},
+  lower: { title:"LOWER BODY", sections:[
+    { label:"WARM UP", color:"warmup", exercises:["Side Lunges","Reverse Lunge Pulse","Front Lunge to Side Lunge","Quick Squats"], note:"" },
+    { label:"SET 1 — QUADS & GLUTES", color:"set", exercises:["Squat Pulse","Front Lunge Shoulder Raise","Squat Thrusters","Deadlift with Squat"], note:"" },
+    { label:"SET 2 — LUNGES", color:"set", exercises:["Reverse Lunge with Chest Press","Side Lunge with Twist","Front Lunge Pulse with Curtsy Lunge","Alternating Reverse Lunge Pulses"], note:"" },
+    { label:"SET 3 — HAMSTRINGS", color:"set", exercises:["Single Leg Deadlift","Deadlift to Front Lunge","Wide Squat with High Row","Close Stance Squat to Wide Squat"], note:"" },
+    { label:"BURNOUT", color:"burnout", exercises:["Squat Pulse x3 Alternate Side Lunges","Mountain Climbers","Knees to Elbows"], note:"Leave it all on the floor 🔥" },
+  ]},
+};
+
+const DEFAULT_CAT_LABELS = { warmup:"Warm Up", legs:"Legs", upper:"Upper", core:"Core", cardio:"Cardio", full:"Full Body" };
+
+const DISCIPLINE_PACKS = [
+  { id:"yoga", name:"Yoga", icon:"🧘", badgeClass:"pack-yoga",
+    desc:"Poses, flows & breathwork for yoga classes",
+    exercises:[
+      {name:"Child's Pose",cat:"warmup"},{name:"Cat-Cow Stretch",cat:"warmup"},
+      {name:"Thread the Needle",cat:"warmup"},{name:"Seated Forward Fold",cat:"warmup"},
+      {name:"Reclined Butterfly",cat:"warmup"},{name:"Neck Rolls",cat:"warmup"},
+      {name:"Seated Spinal Twist",cat:"warmup"},{name:"Hip Circle Warmup",cat:"warmup"},
+      {name:"Sun Salutation A",cat:"full"},{name:"Sun Salutation B",cat:"full"},
+      {name:"Moon Salutation",cat:"full"},{name:"Vinyasa Flow",cat:"cardio"},
+      {name:"Standing Flow Sequence",cat:"cardio"},{name:"Power Yoga Flow",cat:"cardio"},
+      {name:"Warrior I",cat:"legs"},{name:"Warrior II",cat:"legs"},
+      {name:"Warrior III",cat:"legs"},{name:"Triangle Pose",cat:"legs"},
+      {name:"Half Moon Pose",cat:"legs"},{name:"Crescent Lunge",cat:"legs"},
+      {name:"Chair Pose",cat:"legs"},{name:"Goddess Pose",cat:"legs"},
+      {name:"Tree Pose",cat:"legs"},{name:"Eagle Pose",cat:"legs"},
+      {name:"Pyramid Pose",cat:"legs"},{name:"Revolved Triangle",cat:"legs"},
+      {name:"Pigeon Pose",cat:"legs"},{name:"Half Splits",cat:"legs"},
+      {name:"Low Lunge Twist",cat:"legs"},{name:"Standing Split",cat:"legs"},
+      {name:"Downward Dog",cat:"upper"},{name:"Upward Dog",cat:"upper"},
+      {name:"Low Cobra",cat:"upper"},{name:"Plank Pose",cat:"upper"},
+      {name:"Dolphin Pose",cat:"upper"},{name:"Puppy Pose",cat:"upper"},
+      {name:"Wheel Pose",cat:"upper"},{name:"Camel Pose",cat:"upper"},
+      {name:"Supported Fish Pose",cat:"upper"},{name:"Heart Opening Backbend",cat:"upper"},
+      {name:"Boat Pose",cat:"core"},{name:"Crow Pose",cat:"core"},
+      {name:"Headstand Prep",cat:"core"},{name:"Shoulder Stand",cat:"core"},
+      {name:"Happy Baby",cat:"core"},{name:"Supine Twist",cat:"core"},
+      {name:"Bridge Pose",cat:"core"},{name:"Legs Up the Wall",cat:"core"},
+      {name:"Wide-Leg Forward Fold",cat:"core"},{name:"Bound Angle",cat:"core"},
+    ]},
+  { id:"hiit", name:"HIIT", icon:"⚡", badgeClass:"pack-hiit",
+    desc:"High-intensity circuits & plyometric drills",
+    exercises:[
+      {name:"Explosive Squat Jump",cat:"legs"},{name:"Jump Lunge",cat:"legs"},
+      {name:"Broad Jump",cat:"legs"},{name:"Single Leg Hop",cat:"legs"},
+      {name:"Lateral Jump Squat",cat:"legs"},{name:"Box Jump",cat:"legs"},
+      {name:"Depth Jump",cat:"legs"},{name:"Plyo Lunge",cat:"legs"},
+      {name:"Step Up to Jump",cat:"legs"},{name:"Skater Hops",cat:"legs"},
+      {name:"Plyo Push Up",cat:"upper"},{name:"Clapping Push Up",cat:"upper"},
+      {name:"Renegade Row to Push Up",cat:"upper"},{name:"Push Press",cat:"upper"},
+      {name:"Single Arm DB Snatch",cat:"upper"},{name:"Banded Pull Apart",cat:"upper"},
+      {name:"Sprint in Place",cat:"cardio"},{name:"Lateral Bounds",cat:"cardio"},
+      {name:"Box Shuffle",cat:"cardio"},{name:"Agility Ladder",cat:"cardio"},
+      {name:"Fast Feet to Drop",cat:"cardio"},{name:"Jump Rope Intervals",cat:"cardio"},
+      {name:"Lateral Shuffle to Squat",cat:"cardio"},{name:"Sprint Drill",cat:"cardio"},
+      {name:"Bear Crawl to Plank Jack",cat:"full"},{name:"Burpee Broad Jump",cat:"full"},
+      {name:"Devil Press",cat:"full"},{name:"Kettlebell Swing",cat:"full"},
+      {name:"DB Thruster",cat:"full"},{name:"Med Ball Slam",cat:"full"},
+      {name:"Power Clean",cat:"full"},{name:"Squat to Overhead Press",cat:"full"},
+      {name:"Romanian Deadlift to Row",cat:"full"},{name:"Dumbbell Deadlift",cat:"full"},
+      {name:"V-Up",cat:"core"},{name:"Hollow Body Rock",cat:"core"},
+      {name:"L-Sit Hold",cat:"core"},{name:"Dragon Flag",cat:"core"},
+      {name:"Toes to Bar",cat:"core"},{name:"Hanging Knee Raise",cat:"core"},
+    ]},
+  { id:"tabata", name:"Tabata", icon:"⏱", badgeClass:"pack-tabata",
+    desc:"20s work / 10s rest format exercises",
+    exercises:[
+      {name:"Tabata Squat Jump",cat:"legs"},{name:"Tabata Pulse Squat",cat:"legs"},
+      {name:"Tabata Split Squat",cat:"legs"},{name:"Tabata Jump Lunge",cat:"legs"},
+      {name:"Tabata Sumo Squat",cat:"legs"},{name:"Tabata Reverse Lunge",cat:"legs"},
+      {name:"Tabata Step Up",cat:"legs"},{name:"Tabata Single Leg Deadlift",cat:"legs"},
+      {name:"Tabata Push Up",cat:"upper"},{name:"Tabata Shoulder Tap",cat:"upper"},
+      {name:"Tabata Tricep Dip",cat:"upper"},{name:"Tabata Plank Hold",cat:"upper"},
+      {name:"Tabata Alternating Punch",cat:"upper"},{name:"Tabata Renegade Row",cat:"upper"},
+      {name:"Tabata Mountain Climbers",cat:"cardio"},{name:"Tabata High Knees",cat:"cardio"},
+      {name:"Tabata Burpees",cat:"cardio"},{name:"Tabata Jumping Jacks",cat:"cardio"},
+      {name:"Tabata Speed Skaters",cat:"cardio"},{name:"Tabata Plank Jacks",cat:"cardio"},
+      {name:"Tabata Skier Jump",cat:"cardio"},{name:"Tabata Star Jump",cat:"cardio"},
+      {name:"Tabata Side Shuffle",cat:"cardio"},{name:"Tabata Box Step",cat:"cardio"},
+      {name:"Tabata Sit Up",cat:"core"},{name:"Tabata Russian Twist",cat:"core"},
+      {name:"Tabata Flutter Kick",cat:"core"},{name:"Tabata Hollow Hold",cat:"core"},
+      {name:"Tabata Bicycle Crunch",cat:"core"},{name:"Tabata V-Up",cat:"core"},
+      {name:"Tabata Bear Crawl",cat:"full"},{name:"Tabata Thruster",cat:"full"},
+      {name:"Tabata Alternating Lunge",cat:"full"},{name:"Tabata Squat to Press",cat:"full"},
+      {name:"Tabata Kettlebell Swing",cat:"full"},{name:"Tabata Clean & Press",cat:"full"},
+      {name:"Tabata Plyo Push Up",cat:"full"},{name:"Tabata Speed Squat",cat:"full"},
+    ]},
+  { id:"pilates", name:"Pilates", icon:"🌀", badgeClass:"pack-pilates",
+    desc:"Classical mat & contemporary Pilates work",
+    exercises:[
+      {name:"Pilates Breathing",cat:"warmup"},{name:"Pelvic Curl",cat:"warmup"},
+      {name:"Spine Stretch Forward",cat:"warmup"},{name:"Ribcage Arms",cat:"warmup"},
+      {name:"Imprinting",cat:"warmup"},{name:"Hip Flexor Stretch",cat:"warmup"},
+      {name:"Hamstring Stretch Pilates",cat:"warmup"},{name:"Chest Opener",cat:"warmup"},
+      {name:"The Hundred",cat:"core"},{name:"Roll Up",cat:"core"},
+      {name:"Single Leg Stretch",cat:"core"},{name:"Double Leg Stretch",cat:"core"},
+      {name:"Crisscross",cat:"core"},{name:"Rolling Like a Ball",cat:"core"},
+      {name:"Open Leg Rocker",cat:"core"},{name:"Teaser",cat:"core"},
+      {name:"Side Plank Pilates",cat:"core"},{name:"Boat Hold",cat:"core"},
+      {name:"Neck Pull",cat:"core"},{name:"Saw",cat:"core"},
+      {name:"Spine Twist",cat:"core"},{name:"Hollow Hold Pilates",cat:"core"},
+      {name:"Clamshell",cat:"legs"},{name:"Side Kick Series",cat:"legs"},
+      {name:"Fire Hydrant",cat:"legs"},{name:"Leg Circle",cat:"legs"},
+      {name:"Inner Thigh Squeeze",cat:"legs"},{name:"Supine Leg Lift",cat:"legs"},
+      {name:"Side-Lying Clam",cat:"legs"},{name:"Hip Bridge Pilates",cat:"legs"},
+      {name:"Swimming",cat:"upper"},{name:"Push Up Pilates",cat:"upper"},
+      {name:"Thread the Needle Pilates",cat:"upper"},{name:"Arm Arc",cat:"upper"},
+      {name:"Seal",cat:"full"},{name:"Jackknife Pilates",cat:"full"},
+      {name:"Control Balance",cat:"full"},{name:"Boomerang",cat:"full"},
+      {name:"Swan Dive",cat:"full"},{name:"Rocking",cat:"full"},
+    ]},
+  { id:"barre", name:"Barre", icon:"🩰", badgeClass:"pack-barre",
+    desc:"Ballet-inspired toning & flexibility",
+    exercises:[
+      {name:"Pliés Warmup",cat:"warmup"},{name:"Relevé Warmup",cat:"warmup"},
+      {name:"Port de Bras Warmup",cat:"warmup"},{name:"Standing Cat-Cow",cat:"warmup"},
+      {name:"Hip Circle Barre",cat:"warmup"},{name:"Hamstring Sweep",cat:"warmup"},
+      {name:"Ankle Roll Warmup",cat:"warmup"},{name:"Spine Roll Down",cat:"warmup"},
+      {name:"First Position Plié",cat:"legs"},{name:"Second Position Plié",cat:"legs"},
+      {name:"Parallel Plié",cat:"legs"},{name:"Wide Second Grande Plié",cat:"legs"},
+      {name:"Arabesque Hold",cat:"legs"},{name:"Passé Balance",cat:"legs"},
+      {name:"Grand Battement",cat:"legs"},{name:"Attitude Hold",cat:"legs"},
+      {name:"Inner Thigh Lift",cat:"legs"},{name:"Outer Thigh Lift",cat:"legs"},
+      {name:"Barre Lunge Pulse",cat:"legs"},{name:"Curtsy Dip",cat:"legs"},
+      {name:"Relevé Hold",cat:"legs"},{name:"Diamond Seat Work",cat:"legs"},
+      {name:"Fondu Series",cat:"legs"},{name:"Tendu Series",cat:"legs"},
+      {name:"Pretzel",cat:"legs"},{name:"Seat Work Circles",cat:"legs"},
+      {name:"Rainbow Arc",cat:"legs"},{name:"Kneeling Side Kick",cat:"legs"},
+      {name:"Port de Bras",cat:"upper"},{name:"Arm Circles Barre",cat:"upper"},
+      {name:"Tricep Press Back Barre",cat:"upper"},{name:"Lateral Arm Series",cat:"upper"},
+      {name:"Overhead Press Barre",cat:"upper"},{name:"Bicep Curl Barre",cat:"upper"},
+      {name:"Barre Core Curl",cat:"core"},{name:"Standing Oblique Barre",cat:"core"},
+      {name:"Seat Work Lifts",cat:"core"},{name:"Hollow Hold Barre",cat:"core"},
+      {name:"Rolling Plank Barre",cat:"core"},{name:"Adductor Squeeze",cat:"core"},
+      {name:"Cardio Plié Jumps",cat:"cardio"},{name:"Passé Hops",cat:"cardio"},
+      {name:"Box Step Barre",cat:"cardio"},{name:"Battement Jumps",cat:"cardio"},
+    ]},
+  { id:"boxing", name:"Boxing", icon:"🥊", badgeClass:"pack-boxing",
+    desc:"Boxing & kickboxing combinations",
+    exercises:[
+      {name:"Shadow Boxing Warmup",cat:"warmup"},{name:"Skip Rope Warmup",cat:"warmup"},
+      {name:"Shoulder Roll Warmup",cat:"warmup"},{name:"Neck Roll Warmup",cat:"warmup"},
+      {name:"Hip Rotation Warmup",cat:"warmup"},{name:"Footwork Warmup",cat:"warmup"},
+      {name:"Jab Cross",cat:"upper"},{name:"Jab Cross Hook",cat:"upper"},
+      {name:"Jab Cross Hook Uppercut",cat:"upper"},{name:"Power Cross",cat:"upper"},
+      {name:"Uppercut Series",cat:"upper"},{name:"Body Shot Combo",cat:"upper"},
+      {name:"Speed Bag Intervals",cat:"upper"},{name:"Double Jab Cross",cat:"upper"},
+      {name:"Overhand Right",cat:"upper"},{name:"Jab Body Head",cat:"upper"},
+      {name:"Lead Uppercut Rear Uppercut",cat:"upper"},{name:"Slip and Counter",cat:"upper"},
+      {name:"Combination 1-2-3",cat:"upper"},{name:"Combination 1-2-3-2",cat:"upper"},
+      {name:"Combination 1-2-3-4",cat:"upper"},{name:"Counter Punch Drill",cat:"upper"},
+      {name:"Boxer Shuffle",cat:"cardio"},{name:"Lateral Footwork",cat:"cardio"},
+      {name:"Slip and Slide",cat:"cardio"},{name:"Defensive Slips",cat:"cardio"},
+      {name:"Jump Rope Sprints",cat:"cardio"},{name:"Heavy Bag Intervals",cat:"cardio"},
+      {name:"Duck and Roll",cat:"cardio"},{name:"Parry Drill",cat:"cardio"},
+      {name:"Round Kick Series",cat:"legs"},{name:"Side Kick Drill",cat:"legs"},
+      {name:"Front Kick Series",cat:"legs"},{name:"Rear Leg Kick",cat:"legs"},
+      {name:"Knee Strikes",cat:"full"},{name:"Punch Kick Combo",cat:"full"},
+      {name:"Bob and Weave with Counter",cat:"full"},{name:"Conditioning Sprint Combo",cat:"full"},
+    ]},
+];
+
+// ── STATE ──────────────────────────────────────────────────────
+let sections = [];
+let sectionCounter = 0;
+let activeCat = "all";
+let dragSource = null;
+let pendingExerciseName = null;
+let pendingSplitSecId = null;
+let selectedCrest = null;
+let favorites = JSON.parse(localStorage.getItem("wb_favorites") || "[]");
+let savedWorkouts = JSON.parse(localStorage.getItem("wb_saved") || "[]");
+let customExercises = JSON.parse(localStorage.getItem("wb_custom") || "[]");
+let savedTemplates = JSON.parse(localStorage.getItem("wb_templates") || "[]");
+let installedPacks = JSON.parse(localStorage.getItem("wb_packs") || "[]");
+let catLabels = JSON.parse(localStorage.getItem("wb_catLabels") || JSON.stringify(DEFAULT_CAT_LABELS));
+let hideBuiltIn = JSON.parse(localStorage.getItem("wb_hideBuiltin") || "false");
+let globalTimerIdx = 0;
+let coachIdx = 0;
+let coachFlat = [];
+let coachTabataTimer = null;
+let coachExTimer = null;
+let coachExTimerSec = 0;
+let coachExTimerPaused = false;
+let coachBreakTimer = null;
+let coachBreakCallback = null;
+
+// ── LIBRARY ────────────────────────────────────────────────────
+function getAllExercises() { return [...(hideBuiltIn ? [] : EXERCISES), ...customExercises]; }
+
+function renderCatTabs() {
+  const tabs = document.getElementById("catTabs");
+  const cats = [
+    { key:"all", label:"All" }, { key:"fav", label:"⭐ Fav" },
+    { key:"warmup", label:catLabels.warmup }, { key:"legs",  label:catLabels.legs },
+    { key:"upper",  label:catLabels.upper  }, { key:"core",  label:catLabels.core  },
+    { key:"cardio", label:catLabels.cardio }, { key:"full",  label:catLabels.full  },
+  ];
+  tabs.innerHTML = cats.map(c =>
+    `<button class="cat-tab${activeCat===c.key?' active':''}" data-cat="${c.key}">${c.label}</button>`
+  ).join("");
+}
+
+function renderLibrary() {
+  const q = document.getElementById("searchInput").value.toLowerCase();
+  const list = document.getElementById("exerciseList");
+  const all = getAllExercises();
+  let source = activeCat === "fav"
+    ? all.filter(e => favorites.includes(e.name))
+    : all.filter(e => activeCat === "all" || e.cat === activeCat);
+  if (q) source = source.filter(e => e.name.toLowerCase().includes(q));
+
+  // Favorites at top when showing All
+  if (activeCat === "all" && !q) {
+    const favs = source.filter(e => favorites.includes(e.name));
+    const rest = source.filter(e => !favorites.includes(e.name));
+    source = [...favs, ...rest];
+  }
+
+  list.innerHTML = source.length ? source.map(e => `
+    <div class="exercise-item${favorites.includes(e.name)?' favorited':''}" draggable="true"
+      data-name="${e.name}" data-cat="${e.cat}"
+      ondragstart="onLibDragStart(event,this)" ondragend="onLibDragEnd(event,this)">
+      <span class="ex-dot ${CAT_COLORS[e.cat]||''}"></span>
+      <span class="ex-name" data-exname="${e.name}">${e.name}</span>
+      ${e.pack ? `<span class="pack-badge ${DISCIPLINE_PACKS.find(p=>p.id===e.pack)?.badgeClass||''}">${e.pack.toUpperCase()}</span>` : e.custom ? `<span class="custom-badge">CUSTOM</span>` : ''}
+      <button class="fav-btn${favorites.includes(e.name)?' active':''}" data-exname="${e.name}">★</button>
+      ${e.custom ? `<button class="del-ex-btn" data-delname="${e.name}" title="Delete">×</button>` : ''}
+      <button class="add-ex-btn" data-exname="${e.name}">+</button>
+    </div>
+  `).join("") : `<div class="drop-placeholder">No exercises found</div>`;
+
+  list.querySelectorAll(".ex-name").forEach(el => {
+    el.addEventListener("click", e => { e.stopPropagation(); openExerciseModal(el.dataset.exname); });
+  });
+  list.querySelectorAll(".add-ex-btn").forEach(btn => {
+    btn.addEventListener("click", e => { e.stopPropagation(); openPickSection(btn.dataset.exname); });
+  });
+  list.querySelectorAll(".fav-btn").forEach(btn => {
+    btn.addEventListener("click", e => { e.stopPropagation(); toggleFav(btn.dataset.exname); });
+  });
+  list.querySelectorAll(".del-ex-btn").forEach(btn => {
+    btn.addEventListener("click", e => { e.stopPropagation(); deleteCustomEx(btn.dataset.delname); });
+  });
+}
+
+// ── CUSTOM EXERCISES ──────────────────────────────────────────
+function openAddExModal() {
+  document.getElementById("newExName").value = "";
+  document.getElementById("newExCat").value = "legs";
+  document.getElementById("addExModal").classList.add("open");
+  setTimeout(() => document.getElementById("newExName").focus(), 50);
+}
+function closeAddExModal() { document.getElementById("addExModal").classList.remove("open"); }
+function saveNewExercise() {
+  const name = document.getElementById("newExName").value.trim();
+  const cat = document.getElementById("newExCat").value;
+  if (!name) return;
+  if (getAllExercises().some(e => e.name.toLowerCase() === name.toLowerCase())) {
+    alert("An exercise with that name already exists."); return;
+  }
+  customExercises.push({ name, cat, custom: true });
+  localStorage.setItem("wb_custom", JSON.stringify(customExercises));
+  closeAddExModal();
+  renderLibrary();
+}
+function deleteCustomEx(name) {
+  if (!confirm(`Delete "${name}" from your custom exercises?`)) return;
+  customExercises = customExercises.filter(e => e.name !== name);
+  localStorage.setItem("wb_custom", JSON.stringify(customExercises));
+  renderLibrary();
+}
+
+function toggleFav(name) {
+  if (favorites.includes(name)) favorites = favorites.filter(f => f !== name);
+  else favorites.push(name);
+  localStorage.setItem("wb_favorites", JSON.stringify(favorites));
+  renderLibrary();
+}
+
+document.getElementById("catTabs").addEventListener("click", e => {
+  const btn = e.target.closest(".cat-tab");
+  if (!btn) return;
+  activeCat = btn.dataset.cat;
+  document.querySelectorAll(".cat-tab").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  renderLibrary();
+});
+
+// ── STATS ──────────────────────────────────────────────────────
+function updateStats() {
+  const total = sections.reduce((a, s) => a + s.exercises.length, 0);
+  document.getElementById("statSections").textContent = sections.length;
+  document.getElementById("statExercises").textContent = total;
+  const mins = Math.round(total * 1.5 + sections.length * 0.5);
+  document.getElementById("statTime").textContent = mins + " min";
+}
+
+// ── GLOBAL TIMER ──────────────────────────────────────────────
+function cycleGlobalTimer() {
+  globalTimerIdx = (globalTimerIdx + 1) % GLOBAL_TIMERS.length;
+  const val = GLOBAL_TIMERS[globalTimerIdx];
+  const btn = document.getElementById("globalTimerBtn");
+  btn.textContent = val;
+  btn.classList.toggle("applied", val !== "Off");
+  if (val !== "Off") {
+    sections.forEach(s => s.exercises.forEach(ex => { if (!ex.reps) ex.reps = val; }));
+    renderBuilder();
+  }
+}
+
+// ── PICK SECTION ──────────────────────────────────────────────
+function openPickSection(name) {
+  if (sections.length === 0) { alert("Add a section first, then tap + to add exercises."); return; }
+  pendingExerciseName = name;
+  const list = document.getElementById("pickSectionList");
+  list.innerHTML = sections.map(s => `
+    <button class="pick-sec-btn" data-secid="${s.id}">
+      <span class="pick-sec-label">${s.label || "Unnamed Section"}</span>
+      <span class="pick-sec-count">${s.exercises.length} exercise${s.exercises.length !== 1 ? "s" : ""}</span>
+    </button>
+  `).join("");
+  list.querySelectorAll(".pick-sec-btn").forEach(btn => {
+    btn.addEventListener("click", () => addExToSection(+btn.dataset.secid));
+  });
+  document.getElementById("pickSectionName").textContent = name;
+  document.getElementById("pickSectionModal").classList.add("open");
+}
+function closePickSection() { document.getElementById("pickSectionModal").classList.remove("open"); pendingExerciseName = null; }
+function addExToSection(secId) {
+  const sec = sections.find(s => s.id === secId);
+  const timer = GLOBAL_TIMERS[globalTimerIdx];
+  if (sec && pendingExerciseName) {
+    sec.exercises.push({ name: pendingExerciseName, reps: timer !== "Off" ? timer : "" });
+    renderBuilder(); updateStats();
+    setTimeout(() => { const el = document.getElementById(`sec-${secId}`); if (el) el.scrollIntoView({ behavior:"smooth", block:"center" }); }, 80);
+  }
+  closePickSection();
+}
+
+// ── SECTIONS ──────────────────────────────────────────────────
+function addSection(label="", exercises=[], color="set", note="") {
+  const id = ++sectionCounter;
+  const timer = GLOBAL_TIMERS[globalTimerIdx];
+  sections.push({ id, label, color, note, tabata: null, exercises: exercises.map(e => ({ name: e, reps: timer !== "Off" ? timer : "" })) });
+  renderBuilder(); updateStats();
+  if (!label) setTimeout(() => { const inp = document.getElementById(`sec-label-${id}`); if (inp) inp.focus(); }, 50);
+}
+
+function removeSection(id) { sections = sections.filter(s => s.id !== id); renderBuilder(); updateStats(); }
+
+function removeExercise(secId, idx) {
+  const sec = sections.find(s => s.id === secId);
+  if (sec) { sec.exercises.splice(idx, 1); renderBuilder(); updateStats(); }
+}
+
+function updateLabel(id, val) { const sec = sections.find(s => s.id === id); if (sec) sec.label = val; }
+function updateNote(id, val) { const sec = sections.find(s => s.id === id); if (sec) sec.note = val; }
+function updateReps(secId, idx, val) { const sec = sections.find(s => s.id === secId); if (sec) sec.exercises[idx].reps = val; }
+
+function moveSection(id, dir) {
+  const idx = sections.findIndex(s => s.id === id);
+  const to = idx + dir;
+  if (to < 0 || to >= sections.length) return;
+  [sections[idx], sections[to]] = [sections[to], sections[idx]];
+  renderBuilder();
+}
+
+function duplicateSection(id) {
+  const sec = sections.find(s => s.id === id);
+  if (!sec) return;
+  const newId = ++sectionCounter;
+  const copy = { ...sec, id: newId, label: sec.label + " (copy)", exercises: sec.exercises.map(e => ({...e})) };
+  const idx = sections.findIndex(s => s.id === id);
+  sections.splice(idx + 1, 0, copy);
+  renderBuilder(); updateStats();
+}
+
+function cycleColor(id) {
+  const sec = sections.find(s => s.id === id);
+  if (!sec) return;
+  const idx = SEC_COLOR_CYCLE.indexOf(sec.color);
+  sec.color = SEC_COLOR_CYCLE[(idx + 1) % SEC_COLOR_CYCLE.length];
+  renderBuilder();
+}
+
+// ── SPLIT INTO SETS ───────────────────────────────────────────
+function openSplitModal(id) {
+  pendingSplitSecId = id;
+  document.getElementById("splitModal").classList.add("open");
+}
+function closeSplitModal() { document.getElementById("splitModal").classList.remove("open"); pendingSplitSecId = null; }
+function doSplit(perSet) {
+  const secId = pendingSplitSecId;
+  const sec = sections.find(s => s.id === secId);
+  if (!sec || sec.exercises.length < 2) { closeSplitModal(); return; }
+  const secIndex = sections.findIndex(s => s.id === secId);
+  const allEx = [...sec.exercises];
+  const base = sec.label.replace(/\s*—?\s*(SET\s*\d+)\s*$/i,"").trim() || "SET";
+  const newSecs = [];
+  let n = 1;
+  for (let i = 0; i < allEx.length; i += perSet) {
+    newSecs.push({ id: ++sectionCounter, label:`${base} — SET ${n++}`, color: sec.color, note:"", exercises: allEx.slice(i, i+perSet) });
+  }
+  sections.splice(secIndex, 1, ...newSecs);
+  renderBuilder(); updateStats(); closeSplitModal();
+}
+
+// ── SAVE / LOAD ───────────────────────────────────────────────
+function saveCurrentWorkout() {
+  if (sections.length === 0) { alert("Nothing to save yet!"); return; }
+  const title = document.getElementById("workoutTitle").value || "Untitled Session";
+  const dur = document.getElementById("durationInput").value;
+  const id = Date.now();
+  savedWorkouts.unshift({ id, title, dur, date: new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"}), sections: JSON.parse(JSON.stringify(sections)) });
+  localStorage.setItem("wb_saved", JSON.stringify(savedWorkouts));
+  const btn = document.querySelector(".builder-toolbar .toolbar-actions button");
+  const orig = btn ? btn.textContent : "";
+  if (btn) { btn.textContent = "✓ Saved!"; setTimeout(() => btn.textContent = orig, 1500); }
+}
+
+function loadSavedWorkout(id) {
+  const w = savedWorkouts.find(w => w.id === id);
+  if (!w) return;
+  clearBuilder(true);
+  document.getElementById("workoutTitle").value = w.title;
+  document.getElementById("durationInput").value = w.dur || "";
+  sections = JSON.parse(JSON.stringify(w.sections));
+  sectionCounter = Math.max(...sections.map(s => s.id), 0);
+  renderBuilder(); updateStats(); closeSavedModal();
+}
+
+function deleteSavedWorkout(id) {
+  savedWorkouts = savedWorkouts.filter(w => w.id !== id);
+  localStorage.setItem("wb_saved", JSON.stringify(savedWorkouts));
+  renderSavedModal();
+}
+
+function clearBuilder(silent=false) {
+  sections = []; sectionCounter = 0;
+  document.getElementById("workoutTitle").value = "";
+  document.getElementById("durationInput").value = "";
+  renderBuilder(); updateStats();
+}
+
+function loadPastWorkout(key) {
+  const w = PAST_WORKOUTS.find(p => p.key === key);
+  if (!w) return;
+  clearBuilder(true);
+  document.getElementById("workoutTitle").value = w.title;
+  w.sections.forEach(s => addSection(s.label, s.exercises, s.color, s.note || ""));
+  closePastModal();
+}
+
+// ── RANDOMIZE ─────────────────────────────────────────────────
+function randomizeWorkout() {
+  clearBuilder(true);
+  document.getElementById("workoutTitle").value = "RANDOM SESSION";
+  const shuffle = arr => [...arr].sort(() => Math.random()-0.5);
+  const pick = (arr, n) => shuffle(arr).slice(0, n);
+  const warmup = pick(EXERCISES.filter(e => e.cat==="warmup"), 4);
+  const legs = pick(EXERCISES.filter(e => e.cat==="legs"), 4);
+  const upper = pick(EXERCISES.filter(e => e.cat==="upper"), 4);
+  const core = pick(EXERCISES.filter(e => e.cat==="core"), 3);
+  const cardio = pick(EXERCISES.filter(e => e.cat==="cardio"), 2);
+  addSection("WARM UP", warmup.map(e=>e.name), "warmup");
+  addSection("SET 1 — LEGS", legs.map(e=>e.name), "set");
+  addSection("SET 2 — UPPER", upper.map(e=>e.name), "set");
+  addSection("CARDIO BURST", cardio.map(e=>e.name), "burnout");
+  addSection("ABS", core.map(e=>e.name), "abs");
+}
+
+// ── PAST / SAVED MODALS ───────────────────────────────────────
+function openPastModal() {
+  const list = document.getElementById("pastList");
+  list.innerHTML = PAST_WORKOUTS.map(w => `
+    <div class="saved-item">
+      <div>
+        <div class="saved-item-title">${w.title}</div>
+        <div class="saved-item-meta">${w.sections.length} sections · ${w.sections.reduce((a,s)=>a+s.exercises.length,0)} exercises</div>
+      </div>
+      <div class="saved-item-actions">
+        <button class="btn btn-ghost" style="font-size:0.75rem;padding:5px 10px;" data-key="${w.key}">Load</button>
+      </div>
+    </div>
+  `).join("");
+  list.querySelectorAll("[data-key]").forEach(btn => btn.addEventListener("click", () => loadPastWorkout(btn.dataset.key)));
+  document.getElementById("pastModal").classList.add("open");
+}
+function closePastModal() { document.getElementById("pastModal").classList.remove("open"); }
+
+function openSavedModal() { renderSavedModal(); document.getElementById("savedModal").classList.add("open"); }
+function closeSavedModal() { document.getElementById("savedModal").classList.remove("open"); }
+function renderSavedModal() {
+  const list = document.getElementById("savedList");
+  const empty = document.getElementById("savedEmpty");
+  if (savedWorkouts.length === 0) { list.innerHTML = ""; empty.style.display = "block"; return; }
+  empty.style.display = "none";
+  list.innerHTML = savedWorkouts.map(w => `
+    <div class="saved-item">
+      <div>
+        <div class="saved-item-title">${w.title}</div>
+        <div class="saved-item-meta">${w.date} · ${w.sections.length} sections · ${w.sections.reduce((a,s)=>a+s.exercises.length,0)} exercises</div>
+      </div>
+      <div class="saved-item-actions">
+        <button class="btn btn-ghost" style="font-size:0.75rem;padding:5px 10px;" data-load="${w.id}">Load</button>
+        <button class="btn" style="font-size:0.75rem;padding:5px 8px;color:#ff4444;border:1px solid #ff444433;background:transparent;" data-del="${w.id}">✕</button>
+      </div>
+    </div>
+  `).join("");
+  list.querySelectorAll("[data-load]").forEach(btn => btn.addEventListener("click", () => loadSavedWorkout(+btn.dataset.load)));
+  list.querySelectorAll("[data-del]").forEach(btn => btn.addEventListener("click", () => deleteSavedWorkout(+btn.dataset.del)));
+}
+
+// ── TEMPLATES ─────────────────────────────────────────────────
+function generateCrestWorkout(type) {
+  const shuffle = arr => [...arr].sort(() => Math.random() - 0.5);
+  const pick = (cat, n) => shuffle(EXERCISES.filter(e => e.cat === cat)).slice(0, n).map(e => e.name);
+  if (type === 'upper') {
+    const pool = shuffle(EXERCISES.filter(e => e.cat === 'upper')).slice(0, 12).map(e => e.name);
+    return { title: "UPPER BODY", sections: [
+      { label: "WARM UP", color: "warmup", exercises: pick('warmup', 4), note: "Light warm up — keep it flowing" },
+      { label: "SET 1 — CHEST & SHOULDERS", color: "chest", exercises: pool.slice(0, 4), note: "" },
+      { label: "SET 2 — ARMS", color: "set", exercises: pool.slice(4, 8), note: "" },
+      { label: "SET 3 — FINISHER", color: "burnout", exercises: pool.slice(8, 12), note: "Final push!" },
+      { label: "ABS", color: "abs", exercises: pick('core', 4), note: "" },
+    ]};
+  } else {
+    const pool = shuffle(EXERCISES.filter(e => e.cat === 'legs')).slice(0, 12).map(e => e.name);
+    return { title: "LOWER BODY", sections: [
+      { label: "WARM UP", color: "warmup", exercises: pick('warmup', 4), note: "" },
+      { label: "SET 1 — QUADS & GLUTES", color: "set", exercises: pool.slice(0, 4), note: "" },
+      { label: "SET 2 — LUNGES", color: "set", exercises: pool.slice(4, 8), note: "" },
+      { label: "SET 3 — HAMSTRINGS", color: "set", exercises: pool.slice(8, 12), note: "" },
+      { label: "BURNOUT", color: "burnout", exercises: [...pick('cardio', 2), ...pick('core', 1)], note: "Leave it all on the floor 🔥" },
+    ]};
+  }
+}
+
+function openCrestModal() {
+  selectedCrest = null;
+  document.getElementById("crest-upper").classList.remove("selected");
+  document.getElementById("crest-lower").classList.remove("selected");
+  document.getElementById("crestPreview").classList.remove("visible");
+  document.getElementById("crestLoadBtn").style.display = "none";
+  renderTemplatesModal();
+  document.getElementById("crestModal").classList.add("open");
+}
+function closeCrestModal() { document.getElementById("crestModal").classList.remove("open"); }
+
+function selectCrest(type) {
+  selectedCrest = type;
+  document.getElementById("crest-upper").classList.toggle("selected", type === "upper");
+  document.getElementById("crest-lower").classList.toggle("selected", type === "lower");
+  const structures = {
+    upper: [
+      { label: "WARM UP", note: "4 random warm-up exercises" },
+      { label: "SET 1 — CHEST & SHOULDERS", note: "4 random upper body exercises" },
+      { label: "SET 2 — ARMS", note: "4 random upper body exercises" },
+      { label: "SET 3 — FINISHER", note: "4 random upper body exercises" },
+      { label: "ABS", note: "4 random core exercises" },
+    ],
+    lower: [
+      { label: "WARM UP", note: "4 random warm-up exercises" },
+      { label: "SET 1 — QUADS & GLUTES", note: "4 random leg exercises" },
+      { label: "SET 2 — LUNGES", note: "4 random leg exercises" },
+      { label: "SET 3 — HAMSTRINGS", note: "4 random leg exercises" },
+      { label: "BURNOUT", note: "2 random cardio + 1 core exercise" },
+    ]
+  };
+  const preview = document.getElementById("crestPreview");
+  preview.innerHTML = structures[type].map(s =>
+    `<div class="crest-preview-section">${s.label}</div>` +
+    `<div class="crest-preview-ex" style="color:#555;font-style:italic;">↺ ${s.note}</div>`
+  ).join("");
+  preview.classList.add("visible");
+  document.getElementById("crestLoadBtn").style.display = "inline-block";
+}
+
+function loadCrestWorkout() {
+  if (!selectedCrest) return;
+  const w = generateCrestWorkout(selectedCrest);
+  clearBuilder(true);
+  document.getElementById("workoutTitle").value = w.title;
+  w.sections.forEach(s => addSection(s.label, s.exercises, s.color, s.note || ""));
+  closeCrestModal();
+}
+
+function renderTemplatesModal() {
+  const list = document.getElementById("customTemplatesList");
+  const section = document.getElementById("customTemplatesSection");
+  if (!list || !section) return;
+  if (savedTemplates.length === 0) { section.style.display = "none"; return; }
+  section.style.display = "block";
+  list.innerHTML = savedTemplates.map(t => `
+    <div class="saved-item">
+      <div>
+        <div class="saved-item-title">${t.name}</div>
+        <div class="saved-item-meta">${t.date} · ${t.sections.length} sections · ${t.sections.reduce((a,s)=>a+s.exercises.length,0)} exercises</div>
+      </div>
+      <div class="saved-item-actions">
+        <button class="btn btn-ghost" style="font-size:0.75rem;padding:5px 10px;" data-tload="${t.id}">Load</button>
+        <button class="btn" style="font-size:0.75rem;padding:5px 8px;color:#ff4444;border:1px solid #ff444433;background:transparent;" data-tdel="${t.id}">✕</button>
+      </div>
+    </div>
+  `).join("");
+  list.querySelectorAll("[data-tload]").forEach(btn => btn.addEventListener("click", () => loadCustomTemplate(+btn.dataset.tload)));
+  list.querySelectorAll("[data-tdel]").forEach(btn => btn.addEventListener("click", () => deleteCustomTemplate(+btn.dataset.tdel)));
+}
+
+function loadCustomTemplate(id) {
+  const t = savedTemplates.find(t => t.id === id);
+  if (!t) return;
+  clearBuilder(true);
+  document.getElementById("workoutTitle").value = t.name;
+  document.getElementById("durationInput").value = t.dur || "";
+  sections = JSON.parse(JSON.stringify(t.sections));
+  sectionCounter = Math.max(...sections.map(s => s.id), 0);
+  renderBuilder(); updateStats(); closeCrestModal();
+}
+
+function deleteCustomTemplate(id) {
+  savedTemplates = savedTemplates.filter(t => t.id !== id);
+  localStorage.setItem("wb_templates", JSON.stringify(savedTemplates));
+  renderTemplatesModal();
+}
+
+function openSaveTemplateModal() {
+  if (sections.length === 0) { alert("Build a session first, then save it as a template."); return; }
+  document.getElementById("templateNameInput").value = document.getElementById("workoutTitle").value || "";
+  document.getElementById("saveTemplateModal").classList.add("open");
+  setTimeout(() => document.getElementById("templateNameInput").select(), 50);
+}
+function closeSaveTemplateModal() { document.getElementById("saveTemplateModal").classList.remove("open"); }
+function confirmSaveTemplate() {
+  const name = document.getElementById("templateNameInput").value.trim();
+  if (!name) return;
+  const id = Date.now();
+  savedTemplates.unshift({
+    id, name,
+    dur: document.getElementById("durationInput").value,
+    date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+    sections: JSON.parse(JSON.stringify(sections))
+  });
+  localStorage.setItem("wb_templates", JSON.stringify(savedTemplates));
+  closeSaveTemplateModal();
+  const btn = document.querySelector('[onclick="openSaveTemplateModal()"]');
+  if (btn) { const o = btn.textContent; btn.textContent = "✓ Saved!"; setTimeout(() => btn.textContent = o, 1500); }
+}
+
+// ── RENDER BUILDER ────────────────────────────────────────────
+function renderBuilder() {
+  const container = document.getElementById("builderSections");
+  if (sections.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:50px 20px;color:#333;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:3px;margin-bottom:10px;color:#2a2a2a;">BUILD YOUR SESSION</div>
+        <div style="font-size:0.82rem;color:#444;">Add a section below · tap <strong style="color:#555">+</strong> on exercises to add them</div>
+      </div>`;
+    return;
+  }
+  container.innerHTML = sections.map((sec, si) => {
+    const colorDotStyle = {
+      warmup:"#a855f7", set:"#3cf0ff", abs:"#e8ff3c", chest:"#ff6b35", burnout:"#ff3c7a", default:"#555"
+    }[sec.color] || "#555";
+    return `
+    <div class="section-card" id="sec-${sec.id}" data-color="${sec.color}">
+      <div class="section-header">
+        <div class="section-color-dot" style="background:${colorDotStyle}" title="Click to change color" data-secid="${sec.id}"></div>
+        <input class="section-label-input" id="sec-label-${sec.id}"
+          value="${sec.label}" placeholder="SET 1 / WARM UP / ABS..."
+          oninput="updateLabel(${sec.id}, this.value)">
+        <div class="section-actions">
+          <button class="icon-btn move-up" data-mvup="${sec.id}" title="Move up">↑</button>
+          <button class="icon-btn move-dn" data-mvdn="${sec.id}" title="Move down">↓</button>
+          <button class="icon-btn dup" data-dup="${sec.id}" title="Duplicate">⧉</button>
+          <button class="icon-btn split" data-split="${sec.id}">Split</button>
+          <button class="icon-btn tabata${sec.tabata?' on':''}" data-tabata="${sec.id}" title="Toggle Tabata">⏱ Tabata</button>
+          <button class="icon-btn del" data-del="${sec.id}">✕</button>
+        </div>
+      </div>
+      <div class="drop-zone" id="drop-${sec.id}"
+        ondragover="onDragOver(event,${sec.id})"
+        ondragleave="onDragLeave(event,${sec.id})"
+        ondrop="onDrop(event,${sec.id})">
+        ${sec.exercises.length === 0
+          ? `<div class="drop-placeholder">Tap + on exercises to add, or drag here</div>`
+          : sec.exercises.map((ex, idx) => `
+            <div class="built-exercise" draggable="true"
+              data-sec="${sec.id}" data-idx="${idx}"
+              ondragstart="onBuiltDragStart(event,this)"
+              ondragend="onBuiltDragEnd(event,this)">
+              <span class="drag-handle">⠿</span>
+              ${ex.isCombo ? `<span class="combo-badge">COMBO</span>` : ''}
+              <span class="be-name">${ex.name}</span>
+              <input class="be-reps" type="text" placeholder="reps / time"
+                value="${ex.reps}"
+                data-sid="${sec.id}" data-eidx="${idx}"
+                ondragstart="event.stopPropagation()">
+              <button class="remove-ex" data-rsec="${sec.id}" data-ridx="${idx}">✕</button>
+            </div>
+          `).join("")}
+      </div>
+      <input class="section-note-input" placeholder="Notes (e.g. use heavy weights, no rest)..."
+        value="${sec.note || ""}" data-notesec="${sec.id}">
+      <div class="section-footer">
+        ${sec.tabata
+          ? `<span style="font-size:0.68rem;color:#f59e0b;font-weight:700;font-family:'Bebas Neue',sans-serif;letter-spacing:1px;">⏱ TABATA</span>
+             <span style="font-size:0.68rem;color:var(--muted);align-self:center;">Work</span>
+             <input class="tabata-input" type="number" min="5" max="60" value="${sec.tabata.work}" data-tabwork="${sec.id}">
+             <span style="font-size:0.68rem;color:var(--muted);align-self:center;">Rest</span>
+             <input class="tabata-input" type="number" min="5" max="60" value="${sec.tabata.rest}" data-tabrest="${sec.id}">
+             <span style="font-size:0.68rem;color:var(--muted);align-self:center;">×</span>
+             <input class="tabata-input" type="number" min="1" max="20" value="${sec.tabata.rounds}" data-tabrounds="${sec.id}">
+             <span style="font-size:0.68rem;color:var(--muted);align-self:center;">rounds</span>`
+          : `<span style="font-size:0.7rem;color:#444;align-self:center;">Timer:</span>
+             ${["30s","40s","45s","60s"].map(t=>`<button class="timer-preset-btn${sec.exercises.length && sec.exercises[0].reps===t?' applied':''}" data-timer="${t}" data-tsec="${sec.id}">${t}</button>`).join("")}`}
+      </div>
+    </div>`;
+  }).join("");
+
+  // Attach all events via delegation — safe for all exercise names
+  container.querySelectorAll("[data-mvup]").forEach(b => b.addEventListener("click", () => moveSection(+b.dataset.mvup, -1)));
+  container.querySelectorAll("[data-mvdn]").forEach(b => b.addEventListener("click", () => moveSection(+b.dataset.mvdn, 1)));
+  container.querySelectorAll("[data-dup]").forEach(b => b.addEventListener("click", () => duplicateSection(+b.dataset.dup)));
+  container.querySelectorAll("[data-split]").forEach(b => b.addEventListener("click", () => openSplitModal(+b.dataset.split)));
+  container.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => removeSection(+b.dataset.del)));
+  container.querySelectorAll(".section-color-dot").forEach(b => b.addEventListener("click", () => cycleColor(+b.dataset.secid)));
+  container.querySelectorAll(".be-reps").forEach(inp => inp.addEventListener("input", () => updateReps(+inp.dataset.sid, +inp.dataset.eidx, inp.value)));
+  container.querySelectorAll(".remove-ex").forEach(b => b.addEventListener("click", () => removeExercise(+b.dataset.rsec, +b.dataset.ridx)));
+  container.querySelectorAll(".section-note-input").forEach(inp => inp.addEventListener("input", () => updateNote(+inp.dataset.notesec, inp.value)));
+  container.querySelectorAll(".timer-preset-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const secId = +btn.dataset.tsec;
+      const t = btn.dataset.timer;
+      const sec = sections.find(s => s.id === secId);
+      if (sec) { sec.exercises.forEach(ex => ex.reps = t); renderBuilder(); updateStats(); }
+    });
+  });
+  container.querySelectorAll("[data-tabata]").forEach(b => b.addEventListener("click", () => toggleTabata(+b.dataset.tabata)));
+  container.querySelectorAll("[data-tabwork]").forEach(inp => inp.addEventListener("input", () => updateTabataSetting(+inp.dataset.tabwork, "work", +inp.value)));
+  container.querySelectorAll("[data-tabrest]").forEach(inp => inp.addEventListener("input", () => updateTabataSetting(+inp.dataset.tabrest, "rest", +inp.value)));
+  container.querySelectorAll("[data-tabrounds]").forEach(inp => inp.addEventListener("input", () => updateTabataSetting(+inp.dataset.tabrounds, "rounds", +inp.value)));
+}
+
+// ── DRAG & DROP ───────────────────────────────────────────────
+function onLibDragStart(e, el) {
+  dragSource = { type:"library", name:el.dataset.name };
+  el.classList.add("dragging");
+  e.dataTransfer.effectAllowed = "copy";
+  e.dataTransfer.setData("text/plain", el.dataset.name);
+}
+function onLibDragEnd(e, el) { el.classList.remove("dragging"); }
+function onBuiltDragStart(e, el) {
+  dragSource = { type:"built", secId:+el.dataset.sec, exIndex:+el.dataset.idx };
+  el.classList.add("dragging");
+  e.dataTransfer.effectAllowed = "move";
+}
+function onBuiltDragEnd(e, el) { el.classList.remove("dragging"); }
+function onDragOver(e, secId) {
+  e.preventDefault();
+  document.getElementById(`drop-${secId}`).classList.add("drag-over");
+}
+function onDragLeave(e, secId) {
+  const dz = document.getElementById(`drop-${secId}`);
+  if (!dz.contains(e.relatedTarget)) dz.classList.remove("drag-over");
+}
+function onDrop(e, secId) {
+  e.preventDefault();
+  document.getElementById(`drop-${secId}`).classList.remove("drag-over");
+  const sec = sections.find(s => s.id === secId);
+  if (!sec || !dragSource) return;
+  const timer = GLOBAL_TIMERS[globalTimerIdx];
+  if (dragSource.type === "library") {
+    sec.exercises.push({ name:dragSource.name, reps: timer !== "Off" ? timer : "" });
+  } else if (dragSource.type === "built") {
+    const fromSec = sections.find(s => s.id === dragSource.secId);
+    if (!fromSec) return;
+    const [ex] = fromSec.exercises.splice(dragSource.exIndex, 1);
+    sec.exercises.push(ex);
+  }
+  dragSource = null;
+  renderBuilder(); updateStats();
+}
+
+// ── COACH VIEW ────────────────────────────────────────────────
+function buildCoachFlat() {
+  coachFlat = [];
+  sections.forEach(sec => {
+    sec.exercises.forEach(ex => {
+      const cueData = EXERCISE_CUES[ex.name] || CAT_FALLBACK[ex.cat] || CAT_FALLBACK.full;
+      coachFlat.push({ secLabel: sec.label, name: ex.name, reps: ex.reps, tabata: sec.tabata || null, note: sec.note || "", cues: cueData.cues || [] });
+    });
+  });
+}
+function openCoachView() {
+  if (sections.length === 0) { alert("Add some exercises first!"); return; }
+  buildCoachFlat();
+  coachIdx = 0;
+  renderCoach();
+  document.getElementById("coachView").classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+function closeCoachView() {
+  clearCoachTimer();
+  clearExTimer();
+  if (coachBreakTimer) { clearInterval(coachBreakTimer); coachBreakTimer = null; }
+  coachBreakCallback = null;
+  document.getElementById("coachBreak").classList.remove("visible");
+  document.getElementById("coachView").classList.remove("open");
+  document.body.style.overflow = "";
+}
+function renderCoach() {
+  clearCoachTimer();
+  clearExTimer();
+  const cur = coachFlat[coachIdx];
+  const next = coachFlat[coachIdx + 1] || null;
+  document.getElementById("coachSecLabel").textContent = cur.secLabel;
+  document.getElementById("coachExName").textContent = cur.name;
+  document.getElementById("coachProgress").textContent = `${coachIdx+1} of ${coachFlat.length}`;
+  // Section note
+  const noteEl = document.getElementById("coachNote");
+  noteEl.textContent = cur.note || "";
+  // Next up
+  const nextEl = document.getElementById("coachNextUp");
+  if (next) {
+    if (next.secLabel !== cur.secLabel) {
+      nextEl.className = "coach-next-up section-change";
+      nextEl.innerHTML = `<span class="next-label">Section ends — up next: ${next.secLabel}</span><span class="next-name">${next.name}</span>`;
+    } else {
+      nextEl.className = "coach-next-up";
+      nextEl.innerHTML = `<span class="next-label">Next up</span><span class="next-name">${next.name}</span>`;
+    }
+  } else {
+    nextEl.className = "coach-next-up";
+    nextEl.innerHTML = `<span class="next-label">Next up</span><span class="next-name" style="color:#333;">— last exercise</span>`;
+  }
+  // Progress dots
+  const dots = document.getElementById("coachDots");
+  dots.innerHTML = coachFlat.map((_, i) =>
+    `<div class="coach-dot${i===coachIdx?' active':i<coachIdx?' done':''}"></div>`
+  ).join("");
+  // Coaching cues
+  const cuesEl = document.getElementById("coachCuesList");
+  if (cuesEl) {
+    cuesEl.innerHTML = (cur.cues || []).map(c =>
+      `<div class="coach-cue-item">${c}</div>`
+    ).join("");
+  }
+  const cuesSection = document.getElementById("coachCuesSection");
+  if (cuesSection) cuesSection.style.display = (cur.cues && cur.cues.length) ? "block" : "none";
+  // Music bar
+  updateCoachMusicBar();
+  if (cur.tabata) {
+    document.getElementById("coachReps").textContent = `${cur.tabata.work}s work / ${cur.tabata.rest}s rest × ${cur.tabata.rounds}`;
+    document.getElementById("coachTimerBtn").style.display = "none";
+    startCoachTabata(cur.tabata);
+  } else {
+    document.getElementById("coachReps").textContent = cur.reps || "";
+    document.getElementById("coachTimerBtn").style.display = "";
+    const secs = parseExTime(cur.reps);
+    if (secs) {
+      startExTimer(secs, true);
+    } else {
+      coachExTimerSec = 45;
+      document.getElementById("coachTimerBtn").textContent = "⏱ Timer";
+    }
+  }
+}
+function coachNext() {
+  clearCoachTimer(); clearExTimer();
+  if (coachIdx < coachFlat.length - 1) {
+    const curSec = coachFlat[coachIdx].secLabel;
+    coachIdx++;
+    const newSec = coachFlat[coachIdx].secLabel;
+    if (newSec !== curSec) {
+      showSectionBreak("SECTION COMPLETE", newSec, "seconds until next section", () => renderCoach(), 10);
+    } else {
+      renderCoach();
+    }
+  } else {
+    showSectionBreak("WORKOUT COMPLETE", "Great work!", "", null, -1);
+  }
+}
+function coachPrev() {
+  if (document.getElementById("coachBreak").classList.contains("visible")) {
+    // Dismiss break without firing the forward callback, then go back
+    if (coachBreakTimer) { clearInterval(coachBreakTimer); coachBreakTimer = null; }
+    coachBreakCallback = null;
+    document.getElementById("coachBreak").classList.remove("visible");
+    coachIdx = Math.max(0, coachIdx - 1);
+    clearCoachTimer(); clearExTimer();
+    renderCoach();
+    return;
+  }
+  clearCoachTimer(); clearExTimer();
+  if (coachIdx > 0) { coachIdx--; renderCoach(); }
+}
+function showSectionBreak(badge, nextName, sub, callback, secs) {
+  const screen = document.getElementById("coachBreak");
+  const badgeEl = document.getElementById("coachBreakBadge");
+  const nextLabelEl = document.getElementById("coachBreakNextLabel");
+  const nextNameEl = document.getElementById("coachBreakNextName");
+  const cdEl = document.getElementById("coachBreakCountdown");
+  const subEl = document.getElementById("coachBreakSub");
+  const btn = document.getElementById("coachBreakBtn");
+  badgeEl.textContent = badge;
+  badgeEl.className = secs < 0 ? "coach-break-badge complete" : "coach-break-badge";
+  nextNameEl.textContent = nextName;
+  coachBreakCallback = callback;
+  if (secs < 0) {
+    // Workout complete — no countdown
+    nextLabelEl.style.display = "none";
+    cdEl.style.display = "none";
+    subEl.style.display = "none";
+    if (btn) btn.textContent = "Finish";
+  } else {
+    nextLabelEl.style.display = "";
+    cdEl.style.display = "";
+    subEl.style.display = "";
+    subEl.textContent = sub;
+    if (btn) btn.textContent = "Let's Go →";
+    let remaining = secs;
+    cdEl.textContent = remaining;
+    coachBreakTimer = setInterval(() => {
+      remaining--;
+      cdEl.textContent = remaining;
+      if (remaining <= 0) {
+        clearInterval(coachBreakTimer);
+        coachBreakTimer = null;
+        screen.classList.remove("visible");
+        if (coachBreakCallback) { coachBreakCallback(); coachBreakCallback = null; }
+      }
+    }, 1000);
+  }
+  screen.classList.add("visible");
+}
+function skipBreak() {
+  if (coachBreakTimer) { clearInterval(coachBreakTimer); coachBreakTimer = null; }
+  document.getElementById("coachBreak").classList.remove("visible");
+  if (coachBreakCallback) { coachBreakCallback(); coachBreakCallback = null; }
+}
+
+document.addEventListener("keydown", e => {
+  if (!document.getElementById("coachView").classList.contains("open")) return;
+  // Space/Enter dismisses break screen if visible
+  if (document.getElementById("coachBreak").classList.contains("visible")) {
+    if (e.key === " " || e.key === "Enter" || e.key === "ArrowRight") { e.preventDefault(); skipBreak(); }
+    if (e.key === "Escape") { e.preventDefault(); closeCoachView(); }
+    return;
+  }
+  if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); coachNext(); }
+  if (e.key === "ArrowLeft") { e.preventDefault(); coachPrev(); }
+  if (e.key === "Escape") closeCoachView();
+});
+
+// ── EXPORT ────────────────────────────────────────────────────
+function openExport() {
+  const title = document.getElementById("workoutTitle").value || "GROUP WORKOUT";
+  const dur = document.getElementById("durationInput").value;
+  let out = `${title}\n`;
+  if (dur) out += `Duration: ${dur}\n`;
+  out += `Date: ${new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})}\n`;
+  out += `${"─".repeat(40)}\n\n`;
+  sections.forEach(sec => {
+    out += `${sec.label || "SECTION"}\n`;
+    if (sec.note) out += `  (${sec.note})\n`;
+    sec.exercises.forEach(ex => { out += `  • ${ex.name}${ex.reps ? "  —  "+ex.reps : ""}\n`; });
+    out += "\n";
+  });
+  document.getElementById("exportContent").textContent = out;
+  document.getElementById("exportModal").classList.add("open");
+}
+function closeExport() { document.getElementById("exportModal").classList.remove("open"); }
+function copyExport() {
+  navigator.clipboard.writeText(document.getElementById("exportContent").textContent).then(() => {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = "Copied!";
+    setTimeout(() => btn.textContent = orig, 1500);
+  });
+}
+
+// ── COMBO BUILDER ─────────────────────────────────────────────
+let comboSelected = []; // array of exercise names in order
+
+function openComboBuilder() {
+  comboSelected = [];
+  document.getElementById("comboSearch").value = "";
+  document.getElementById("comboCustomName").value = "";
+  document.getElementById("comboAddBtn").disabled = true;
+  renderComboList();
+  updateComboPreview();
+  document.getElementById("comboModal").classList.add("open");
+}
+function closeComboBuilder() { document.getElementById("comboModal").classList.remove("open"); }
+
+function renderComboList() {
+  const q = document.getElementById("comboSearch").value.toLowerCase();
+  const grid = document.getElementById("comboExGrid");
+  const source = q ? EXERCISES.filter(e => e.name.toLowerCase().includes(q)) : EXERCISES;
+  grid.innerHTML = source.map(e => {
+    const sel = comboSelected.includes(e.name);
+    const idx = comboSelected.indexOf(e.name);
+    return `<div class="combo-ex-option${sel?' selected':''}" data-name="${e.name}">
+      <span class="ex-dot ${CAT_COLORS[e.cat]||''}"></span>
+      <span>${e.name}</span>
+      ${sel ? `<span style="font-size:0.7rem;color:var(--accent2);font-weight:700;">#${idx+1}</span>` : ''}
+      <div class="combo-check">${sel?'✓':''}</div>
+    </div>`;
+  }).join("");
+  grid.querySelectorAll(".combo-ex-option").forEach(el => {
+    el.addEventListener("click", () => toggleComboEx(el.dataset.name));
+  });
+}
+
+function toggleComboEx(name) {
+  if (comboSelected.includes(name)) {
+    comboSelected = comboSelected.filter(n => n !== name);
+  } else {
+    if (comboSelected.length >= 4) { alert("Max 4 exercises in a combo."); return; }
+    comboSelected.push(name);
+  }
+  renderComboList();
+  updateComboPreview();
+  document.getElementById("comboAddBtn").disabled = comboSelected.length < 2;
+}
+
+function updateComboPreview() {
+  const custom = document.getElementById("comboCustomName").value.trim();
+  const autoName = comboSelected.join(" + ");
+  const displayName = custom || autoName;
+  const empty = document.getElementById("comboPreviewEmpty");
+  const name = document.getElementById("comboPreviewName");
+  if (comboSelected.length < 2) {
+    empty.style.display = "block"; name.style.display = "none";
+  } else {
+    empty.style.display = "none"; name.style.display = "block";
+    name.textContent = displayName;
+  }
+}
+
+function addComboToSection(secId) {
+  const custom = document.getElementById("comboCustomName").value.trim();
+  const comboName = custom || comboSelected.join(" + ");
+  const timer = GLOBAL_TIMERS[globalTimerIdx];
+  const sec = sections.find(s => s.id === secId);
+  if (sec) {
+    sec.exercises.push({ name: comboName, reps: timer !== "Off" ? timer : "", isCombo: true });
+    renderBuilder(); updateStats();
+    setTimeout(() => { const el = document.getElementById(`sec-${secId}`); if (el) el.scrollIntoView({ behavior:"smooth", block:"center" }); }, 80);
+  }
+  closePickComboSection();
+  closeComboBuilder();
+}
+
+// After building the combo, pick which section to add it to
+let comboPickOpen = false;
+function addComboToSession() {
+  if (comboSelected.length < 2) return;
+  if (sections.length === 0) { alert("Add a section first!"); return; }
+  if (sections.length === 1) { addComboToSection(sections[0].id); return; }
+  // Show section picker inline within combo modal
+  openPickComboSection();
+}
+
+function openPickComboSection() {
+  const custom = document.getElementById("comboCustomName").value.trim();
+  const comboName = custom || comboSelected.join(" + ");
+  pendingExerciseName = comboName; // reuse pick section modal
+  const list = document.getElementById("pickSectionList");
+  list.innerHTML = sections.map(s => `
+    <button class="pick-sec-btn" data-secid="${s.id}">
+      <span class="pick-sec-label">${s.label || "Unnamed Section"}</span>
+      <span class="pick-sec-count">${s.exercises.length} exercise${s.exercises.length !== 1 ? "s" : ""}</span>
+    </button>
+  `).join("");
+  list.querySelectorAll(".pick-sec-btn").forEach(btn => {
+    btn.addEventListener("click", () => addComboToSection(+btn.dataset.secid));
+  });
+  document.getElementById("pickSectionName").textContent = "Add combo: " + comboName;
+  document.getElementById("pickSectionModal").classList.add("open");
+}
+function closePickComboSection() { document.getElementById("pickSectionModal").classList.remove("open"); }
+
+// ── EXERCISE DETAIL MODAL ─────────────────────────────────────
+let currentModalExercise = null;
+
+function openExerciseModal(name) {
+  const ex = getAllExercises().find(e => e.name === name);
+  if (!ex) return;
+  currentModalExercise = ex;
+
+  const catLabel = { warmup:"Warm Up", legs:"Legs", upper:"Upper Body", core:"Core", cardio:"Cardio", full:"Full Body" };
+  document.getElementById("exDetailCat").textContent = (catLabel[ex.cat] || ex.cat).toUpperCase();
+  document.getElementById("exDetailName").textContent = ex.name.toUpperCase();
+
+  const data = EXERCISE_CUES[ex.name] || CAT_FALLBACK[ex.cat] || CAT_FALLBACK.full;
+  document.getElementById("exDetailMuscles").textContent = data.muscles;
+  document.getElementById("exDetailCues").innerHTML = data.cues
+    .map(c => `<li>${c}</li>`).join("");
+
+  document.getElementById("exerciseModal").classList.add("open");
+}
+function closeExerciseModal() {
+  document.getElementById("exerciseModal").classList.remove("open");
+  currentModalExercise = null;
+}
+function openExerciseYouTube() {
+  if (!currentModalExercise) return;
+  const query = encodeURIComponent(currentModalExercise.name + " exercise form how to");
+  window.open("https://www.youtube.com/results?search_query=" + query, "_blank");
+}
+function addExerciseFromModal() {
+  if (!currentModalExercise) return;
+  closeExerciseModal();
+  openPickSection(currentModalExercise.name);
+}
+
+// ── EXERCISE TIMER ────────────────────────────────────────────
+function parseExTime(reps) {
+  if (!reps) return null;
+  const s = String(reps).trim().toLowerCase();
+  const secM = s.match(/^(\d+)s$/);    if (secM) return +secM[1];
+  const minM = s.match(/^(\d+)m$/);    if (minM) return +minM[1] * 60;
+  const colM = s.match(/^(\d+):(\d{2})$/); if (colM) return +colM[1] * 60 + +colM[2];
+  return null;
+}
+function clearExTimer() {
+  if (coachExTimer) { clearInterval(coachExTimer); coachExTimer = null; }
+  coachExTimerSec = 0; coachExTimerPaused = false;
+  const t = document.getElementById("coachTimer");
+  const btn = document.getElementById("coachTimerBtn");
+  if (t) { t.style.display = "none"; t.className = "coach-timer"; t.textContent = ""; }
+  if (btn) { btn.textContent = "⏱ Timer"; btn.classList.remove("running"); }
+}
+function startExTimer(seconds, autoStart) {
+  if (coachExTimer) { clearInterval(coachExTimer); coachExTimer = null; }
+  coachExTimerSec = seconds;
+  coachExTimerPaused = !autoStart;
+  const t = document.getElementById("coachTimer");
+  const btn = document.getElementById("coachTimerBtn");
+  if (!t) return;
+  t.style.display = "block";
+  const update = () => {
+    t.className = "coach-timer ex" + (coachExTimerSec <= 5 && coachExTimerSec > 0 ? " low" : "");
+    t.textContent = coachExTimerSec;
+    if (btn) btn.textContent = coachExTimerPaused ? `▶ ${coachExTimerSec}s` : `⏸ ${coachExTimerSec}s`;
+  };
+  update();
+  if (autoStart) {
+    if (btn) btn.classList.add("running");
+    coachExTimer = setInterval(() => {
+      if (coachExTimerPaused) return;
+      coachExTimerSec--;
+      if (coachExTimerSec <= 0) {
+        clearInterval(coachExTimer); coachExTimer = null;
+        t.className = "coach-timer finished"; t.textContent = "GO!";
+        if (btn) { btn.textContent = "⏱ Next →"; btn.classList.remove("running"); }
+        setTimeout(() => coachNext(), 1500);
+      } else { update(); }
+    }, 1000);
+  }
+}
+function toggleExTimer() {
+  if (!coachExTimer) {
+    const secs = coachExTimerSec > 0 ? coachExTimerSec : 45;
+    startExTimer(secs, true);
+    return;
+  }
+  coachExTimerPaused = !coachExTimerPaused;
+  const btn = document.getElementById("coachTimerBtn");
+  const t = document.getElementById("coachTimer");
+  if (btn) { btn.classList.toggle("running", !coachExTimerPaused); btn.textContent = coachExTimerPaused ? `▶ ${coachExTimerSec}s` : `⏸ ${coachExTimerSec}s`; }
+  if (t) t.className = "coach-timer ex" + (coachExTimerSec <= 5 ? " low" : "");
+}
+
+// ── TABATA ────────────────────────────────────────────────────
+function toggleTabata(secId) {
+  const sec = sections.find(s => s.id === secId);
+  if (!sec) return;
+  sec.tabata = sec.tabata ? null : { work: 20, rest: 10, rounds: 8 };
+  renderBuilder(); updateStats();
+}
+function updateTabataSetting(secId, key, val) {
+  const sec = sections.find(s => s.id === secId);
+  if (sec && sec.tabata) sec.tabata[key] = val;
+}
+
+function clearCoachTimer() {
+  if (coachTabataTimer) { clearInterval(coachTabataTimer); coachTabataTimer = null; }
+  const phase = document.getElementById("coachPhase");
+  const timer = document.getElementById("coachTimer");
+  const round = document.getElementById("coachRound");
+  phase.style.display = "none"; timer.style.display = "none"; round.style.display = "none";
+  phase.className = "coach-phase"; timer.className = "coach-timer"; round.className = "coach-round";
+}
+function startCoachTabata({ work, rest, rounds }) {
+  const phaseEl = document.getElementById("coachPhase");
+  const timerEl = document.getElementById("coachTimer");
+  const roundEl = document.getElementById("coachRound");
+  phaseEl.style.display = "block"; timerEl.style.display = "block"; roundEl.style.display = "block";
+  let currentRound = 1;
+  let isWork = true;
+  let remaining = work;
+  const update = () => {
+    phaseEl.className = `coach-phase ${isWork ? "work" : "rest"}`;
+    timerEl.className = `coach-timer ${isWork ? "work" : "rest"}`;
+    phaseEl.textContent = isWork ? "WORK" : "REST";
+    timerEl.textContent = remaining;
+    roundEl.textContent = `Round ${currentRound} of ${rounds}`;
+  };
+  update();
+  coachTabataTimer = setInterval(() => {
+    remaining--;
+    if (remaining <= 0) {
+      if (isWork) {
+        isWork = false; remaining = rest;
+      } else {
+        currentRound++;
+        if (currentRound > rounds) { clearCoachTimer(); return; }
+        isWork = true; remaining = work;
+      }
+    }
+    update();
+  }, 1000);
+}
+
+// ── DISCIPLINE PACKS ──────────────────────────────────────────
+function openPackModal() { renderPackModal(); document.getElementById("packModal").classList.add("open"); }
+function closePackModal() { document.getElementById("packModal").classList.remove("open"); }
+function renderPackModal() {
+  const list = document.getElementById("packGrid");
+  list.innerHTML = DISCIPLINE_PACKS.map(pack => {
+    const installed = installedPacks.includes(pack.id);
+    const count = pack.exercises.length;
+    return `<div class="pack-card${installed ? " installed" : ""}">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+        <span style="font-size:1.6rem;">${pack.icon}</span>
+        <div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:1px;">${pack.name}</div>
+          <div style="font-size:0.72rem;color:var(--muted);">${count} exercises</div>
+        </div>
+        <button class="btn ${installed ? "btn-ghost" : "btn-accent"}" style="margin-left:auto;font-size:0.75rem;padding:5px 12px;"
+          onclick="togglePack('${pack.id}')">${installed ? "Remove" : "Install"}</button>
+      </div>
+      <div style="font-size:0.75rem;color:var(--muted);">${pack.desc}</div>
+    </div>`;
+  }).join("");
+}
+function togglePack(packId) {
+  const pack = DISCIPLINE_PACKS.find(p => p.id === packId);
+  if (!pack) return;
+  if (installedPacks.includes(packId)) {
+    installedPacks = installedPacks.filter(id => id !== packId);
+    customExercises = customExercises.filter(e => e.pack !== packId);
+  } else {
+    installedPacks.push(packId);
+    pack.exercises.forEach(ex => {
+      if (!customExercises.some(e => e.name === ex.name && e.pack === packId)) {
+        customExercises.push({ name: ex.name, cat: ex.cat, pack: packId, custom: false });
+      }
+    });
+  }
+  localStorage.setItem("wb_packs", JSON.stringify(installedPacks));
+  localStorage.setItem("wb_custom", JSON.stringify(customExercises));
+  renderPackModal();
+  renderCatTabs();
+  renderLibrary();
+}
+
+// ── LIBRARY SETTINGS ──────────────────────────────────────────
+function openLibSettingsModal() {
+  const fields = ["warmup","legs","upper","core","cardio","full"];
+  fields.forEach(k => {
+    const el = document.getElementById(`catLabel_${k}`);
+    if (el) el.value = catLabels[k];
+  });
+  const tog = document.getElementById("hideBuiltinToggle");
+  if (tog) { tog.textContent = hideBuiltIn ? "ON" : "OFF"; tog.classList.toggle("on", hideBuiltIn); }
+  document.getElementById("libSettingsModal").classList.add("open");
+}
+function closeLibSettingsModal() { document.getElementById("libSettingsModal").classList.remove("open"); }
+function saveLibSettings() {
+  const fields = ["warmup","legs","upper","core","cardio","full"];
+  fields.forEach(k => {
+    const el = document.getElementById(`catLabel_${k}`);
+    if (el && el.value.trim()) catLabels[k] = el.value.trim();
+  });
+  localStorage.setItem("wb_catLabels", JSON.stringify(catLabels));
+  closeLibSettingsModal();
+  renderCatTabs();
+  renderLibrary();
+}
+function resetCatLabels() {
+  catLabels = { ...DEFAULT_CAT_LABELS };
+  localStorage.setItem("wb_catLabels", JSON.stringify(catLabels));
+  const fields = ["warmup","legs","upper","core","cardio","full"];
+  fields.forEach(k => { const el = document.getElementById(`catLabel_${k}`); if (el) el.value = catLabels[k]; });
+}
+function toggleHideBuiltIn() {
+  hideBuiltIn = !hideBuiltIn;
+  localStorage.setItem("wb_hideBuiltin", JSON.stringify(hideBuiltIn));
+  const tog = document.getElementById("hideBuiltinToggle");
+  if (tog) { tog.textContent = hideBuiltIn ? "ON" : "OFF"; tog.classList.toggle("on", hideBuiltIn); }
+  renderCatTabs();
+  renderLibrary();
+}
+
+// ── MODAL CLOSE ON BACKDROP ───────────────────────────────────
+["exerciseModal","pickSectionModal","crestModal","pastModal","savedModal","splitModal","comboModal","exportModal","addExModal","saveTemplateModal","packModal","libSettingsModal"].forEach(id => {
+  document.getElementById(id).addEventListener("click", function(e) { if (e.target===this) this.classList.remove("open"); });
+});
+
+// ── SPOTIFY MUSIC ─────────────────────────────────────────────
+let spotifyEmbed       = localStorage.getItem('wb_spotify_embed')   || '';
+let spotifyClientId    = localStorage.getItem('wb_spotify_clientid') || '';
+let spotifyToken       = localStorage.getItem('wb_spotify_token')    || null;
+let spotifyTokenExpiry = +localStorage.getItem('wb_spotify_expiry')  || 0;
+let spotifyRefreshTok  = localStorage.getItem('wb_spotify_refresh')  || null;
+let spotifyPlayer      = null;
+let spotifyDeviceId    = null;
+let spotifyPlaying     = false;
+let spotifyTrack       = null;
+
+// ── Panel toggle
+function toggleMusicPanel() {
+  const panel = document.getElementById('musicPanel');
+  const btn   = document.getElementById('btnMusic');
+  const open  = panel.classList.toggle('open');
+  btn.classList.toggle('active', open);
+  if (open) renderMusicPanel();
+}
+
+// ── Parse Spotify URL → embed URL
+function parseSpotifyUrl(url) {
+  const m = url.match(/spotify\.com\/(playlist|album|track|artist)\/([A-Za-z0-9]+)/);
+  if (!m) return null;
+  return { type: m[1], id: m[2],
+    embedUrl: `https://open.spotify.com/embed/${m[1]}/${m[2]}?utm_source=generator&theme=0` };
+}
+
+// ── Set embed from input
+function setSpotifyEmbed() {
+  const val = document.getElementById('musicUrlInput').value.trim();
+  const parsed = parseSpotifyUrl(val);
+  if (!parsed && val) { alert('Paste a valid Spotify playlist, album or track URL.'); return; }
+  spotifyEmbed = val;
+  localStorage.setItem('wb_spotify_embed', val);
+  renderMusicPanel();
+}
+
+// ── Render the whole panel
+function renderMusicPanel() {
+  const embedCol = document.getElementById('musicEmbedCol');
+  const sdkCol   = document.getElementById('musicSdkCol');
+  if (!embedCol) return;
+
+  // Pre-fill URL input
+  const inp = document.getElementById('musicUrlInput');
+  if (inp && spotifyEmbed) inp.value = spotifyEmbed;
+
+  // Embed column
+  const parsed = parseSpotifyUrl(spotifyEmbed);
+  if (parsed) {
+    embedCol.innerHTML = `<iframe src="${parsed.embedUrl}" width="100%" height="152"
+      frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+      loading="lazy" style="border-radius:0;"></iframe>`;
+    document.getElementById('musicBody').style.display = 'flex';
+  } else {
+    embedCol.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;min-height:80px;color:#222;font-size:0.78rem;padding:12px;">Paste a Spotify URL above to load a playlist or album.</div>`;
+    document.getElementById('musicBody').style.display = 'flex';
+  }
+
+  // SDK column
+  if (spotifyToken && Date.now() < spotifyTokenExpiry && spotifyPlayer) {
+    renderSdkControls(sdkCol);
+  } else if (spotifyToken && Date.now() >= spotifyTokenExpiry && spotifyRefreshTok) {
+    sdkCol.innerHTML = `<div style="font-size:0.72rem;color:var(--muted);">Reconnecting…</div>`;
+    doRefreshToken().then(() => renderSdkControls(sdkCol));
+  } else {
+    renderSdkSetup(sdkCol);
+  }
+}
+
+function renderSdkSetup(col) {
+  col.innerHTML = `
+    <div class="music-setup">
+      <div style="font-size:0.78rem;color:#1DB954;font-family:'Bebas Neue',sans-serif;letter-spacing:1px;margin-bottom:2px;">SPOTIFY PREMIUM CONTROLS</div>
+      <div class="music-setup-hint">Connect your Spotify Premium account for in-app play/pause/skip and track display in Coach View.</div>
+      <input class="music-client-input" id="musicClientIdInput" type="text"
+        placeholder="Spotify Client ID (from developer.spotify.com)"
+        value="${spotifyClientId}">
+      <button class="btn-spotify" style="width:100%;margin-top:2px;" onclick="startSpotifyAuth()">Connect Spotify Premium →</button>
+      <div class="music-setup-hint" style="margin-top:2px;">
+        <a href="https://developer.spotify.com/dashboard" target="_blank" style="color:#1DB954;font-size:0.68rem;">Set up a free Spotify app ↗</a>
+        — add <code style="font-size:0.68rem;color:#555;">${location.origin}/</code> as redirect URI.
+      </div>
+    </div>`;
+}
+
+function renderSdkControls(col) {
+  const track  = spotifyTrack;
+  const name   = track?.name || '—';
+  const artist = track?.artists?.map(a=>a.name).join(', ') || '';
+  col.innerHTML = `
+    <div class="music-track-name" title="${name}">${name}</div>
+    <div class="music-artist-name">${artist}</div>
+    <div class="music-ctrl-row">
+      <button class="mc-btn" onclick="spotifyPrev()" title="Previous">⏮</button>
+      <button class="mc-btn play" id="musicPlayBtn" onclick="spotifyToggle()">${spotifyPlaying ? '⏸' : '▶'}</button>
+      <button class="mc-btn" onclick="spotifyNext()" title="Next">⏭</button>
+      <input class="music-vol" type="range" min="0" max="100" value="80" oninput="spotifyVolume(this.value)" title="Volume">
+    </div>
+    <button class="btn-spotify ghost" style="font-size:0.7rem;width:100%;" onclick="disconnectSpotify()">Disconnect</button>`;
+}
+
+// ── PKCE OAuth helpers
+function genVerifier() {
+  const arr = new Uint8Array(32);
+  crypto.getRandomValues(arr);
+  return Array.from(arr, b => b.toString(16).padStart(2,'0')).join('');
+}
+async function genChallenge(verifier) {
+  const data   = new TextEncoder().encode(verifier);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return btoa(String.fromCharCode(...new Uint8Array(digest)))
+    .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+
+async function startSpotifyAuth() {
+  const clientId = document.getElementById('musicClientIdInput')?.value.trim();
+  if (!clientId) { alert('Paste your Spotify Client ID first.'); return; }
+  spotifyClientId = clientId;
+  localStorage.setItem('wb_spotify_clientid', clientId);
+
+  const verifier   = genVerifier();
+  const challenge  = await genChallenge(verifier);
+  localStorage.setItem('wb_pkce_verifier', verifier);
+
+  const params = new URLSearchParams({
+    client_id:             clientId,
+    response_type:         'code',
+    redirect_uri:          location.origin + '/',
+    scope:                 'streaming user-read-playback-state user-modify-playback-state user-read-currently-playing',
+    code_challenge_method: 'S256',
+    code_challenge:        challenge,
+  });
+  location.href = `https://accounts.spotify.com/authorize?${params}`;
+}
+
+async function handleSpotifyCallback() {
+  const params   = new URLSearchParams(location.search);
+  const code     = params.get('code');
+  const error    = params.get('error');
+  if (error) { history.replaceState({}, '', location.pathname); return; }
+  if (!code)  return;
+  history.replaceState({}, '', location.pathname);  // clean URL
+
+  const verifier = localStorage.getItem('wb_pkce_verifier');
+  if (!verifier) return;
+  localStorage.removeItem('wb_pkce_verifier');
+
+  const clientId = localStorage.getItem('wb_spotify_clientid') || '';
+  try {
+    const res  = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ client_id: clientId, grant_type: 'authorization_code',
+        code, redirect_uri: location.origin + '/', code_verifier: verifier }),
+    });
+    const data = await res.json();
+    if (data.access_token) {
+      spotifyToken = data.access_token;
+      spotifyRefreshTok = data.refresh_token || null;
+      spotifyTokenExpiry = Date.now() + (data.expires_in - 60) * 1000;
+      localStorage.setItem('wb_spotify_token',   spotifyToken);
+      localStorage.setItem('wb_spotify_refresh', spotifyRefreshTok || '');
+      localStorage.setItem('wb_spotify_expiry',  spotifyTokenExpiry);
+      initSpotifySDK();
+      // Open panel automatically
+      document.getElementById('musicPanel').classList.add('open');
+      document.getElementById('btnMusic').classList.add('active');
+      renderMusicPanel();
+    }
+  } catch(e) { console.error('Spotify auth error', e); }
+}
+
+async function doRefreshToken() {
+  if (!spotifyRefreshTok || !spotifyClientId) return;
+  try {
+    const res  = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ grant_type: 'refresh_token',
+        refresh_token: spotifyRefreshTok, client_id: spotifyClientId }),
+    });
+    const data = await res.json();
+    if (data.access_token) {
+      spotifyToken = data.access_token;
+      if (data.refresh_token) spotifyRefreshTok = data.refresh_token;
+      spotifyTokenExpiry = Date.now() + (data.expires_in - 60) * 1000;
+      localStorage.setItem('wb_spotify_token',   spotifyToken);
+      localStorage.setItem('wb_spotify_refresh', spotifyRefreshTok);
+      localStorage.setItem('wb_spotify_expiry',  spotifyTokenExpiry);
+      if (!spotifyPlayer) initSpotifySDK();
+    }
+  } catch(e) { console.error('Spotify refresh error', e); }
+}
+
+function disconnectSpotify() {
+  if (spotifyPlayer) { spotifyPlayer.disconnect(); spotifyPlayer = null; }
+  spotifyToken = null; spotifyRefreshTok = null; spotifyDeviceId = null; spotifyTrack = null; spotifyPlaying = false;
+  ['wb_spotify_token','wb_spotify_refresh','wb_spotify_expiry'].forEach(k => localStorage.removeItem(k));
+  renderMusicPanel();
+  updateCoachMusicBar();
+}
+
+// ── Web Playback SDK
+function initSpotifySDK() {
+  window.onSpotifyWebPlaybackSDKReady = setupSpotifyPlayer;
+  if (window.Spotify) { setupSpotifyPlayer(); return; }
+  const s = document.createElement('script');
+  s.src = 'https://sdk.scdn.co/spotify-player.js';
+  document.head.appendChild(s);
+}
+
+function setupSpotifyPlayer() {
+  if (spotifyPlayer) return;
+  spotifyPlayer = new window.Spotify.Player({
+    name: 'Workout Builder',
+    getOAuthToken: async cb => {
+      if (Date.now() >= spotifyTokenExpiry) await doRefreshToken();
+      cb(spotifyToken);
+    },
+    volume: 0.8,
+  });
+  spotifyPlayer.addListener('ready', ({ device_id }) => {
+    spotifyDeviceId = device_id;
+    // Transfer playback to this device
+    fetch('https://api.spotify.com/v1/me/player', {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${spotifyToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ device_ids: [device_id], play: false }),
+    });
+    renderMusicPanel();
+  });
+  spotifyPlayer.addListener('player_state_changed', state => {
+    if (!state) return;
+    spotifyPlaying = !state.paused;
+    spotifyTrack   = state.track_window?.current_track || null;
+    updateCoachMusicBar();
+    // Update panel controls if open
+    const playBtn = document.getElementById('musicPlayBtn');
+    if (playBtn) playBtn.textContent = spotifyPlaying ? '⏸' : '▶';
+    // Update track display
+    const tn = document.getElementById('musicPanel')?.querySelector('.music-track-name');
+    const ta = document.getElementById('musicPanel')?.querySelector('.music-artist-name');
+    if (tn && spotifyTrack) { tn.textContent = spotifyTrack.name; }
+    if (ta && spotifyTrack) { ta.textContent = spotifyTrack.artists?.map(a=>a.name).join(', ') || ''; }
+  });
+  spotifyPlayer.addListener('not_ready',        () => { spotifyDeviceId = null; });
+  spotifyPlayer.addListener('initialization_error', ({ m }) => console.error(m));
+  spotifyPlayer.addListener('authentication_error', ({ m }) => { console.error(m); disconnectSpotify(); });
+  spotifyPlayer.addListener('account_error',        ({ m }) => { alert('Spotify Premium required for in-app controls.'); disconnectSpotify(); });
+  spotifyPlayer.connect();
+}
+
+// ── Playback control
+function spotifyToggle() { spotifyPlayer?.togglePlay(); }
+function spotifyNext()   { spotifyPlayer?.nextTrack(); }
+function spotifyPrev()   { spotifyPlayer?.previousTrack(); }
+function spotifyVolume(v) { spotifyPlayer?.setVolume(v / 100); }
+
+// ── Coach view music bar
+function updateCoachMusicBar() {
+  const bar        = document.getElementById('coachMusicBar');
+  const sdkArea    = document.getElementById('coachMusicSdk');
+  const embedArea  = document.getElementById('coachMusicEmbed');
+  const promptArea = document.getElementById('coachMusicPrompt');
+  if (!bar) return;
+
+  if (spotifyPlayer && spotifyDeviceId) {
+    // — SDK mode: full track info + controls
+    bar.classList.add('visible'); bar.classList.remove('minimal');
+    if (sdkArea)    sdkArea.style.display    = '';
+    if (embedArea)  embedArea.style.display  = 'none';
+    if (promptArea) promptArea.style.display = 'none';
+    const trk = document.getElementById('coachMusicTrack');
+    const art = document.getElementById('coachMusicArtist');
+    const btn = document.getElementById('coachMusicPlayBtn');
+    if (trk) trk.textContent = spotifyTrack ? spotifyTrack.name : '—';
+    if (art) art.textContent = spotifyTrack ? (spotifyTrack.artists?.map(a => a.name).join(', ') || '') : '';
+    if (btn) btn.textContent = spotifyPlaying ? '⏸' : '▶';
+  } else if (spotifyEmbed && parseSpotifyUrl(spotifyEmbed)) {
+    // — Embed mode: compact Spotify iframe
+    bar.classList.add('visible'); bar.classList.remove('minimal');
+    if (sdkArea)    sdkArea.style.display    = 'none';
+    if (promptArea) promptArea.style.display = 'none';
+    if (embedArea) {
+      embedArea.style.display = '';
+      // Only inject iframe once so it doesn't reload on every exercise
+      if (!embedArea.querySelector('iframe')) {
+        const parsed = parseSpotifyUrl(spotifyEmbed);
+        embedArea.innerHTML = `<iframe src="${parsed.embedUrl}" width="100%" height="80"
+          frameborder="0"
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+          loading="lazy"></iframe>`;
+      }
+    }
+  } else {
+    // — No music set up: show subtle prompt
+    bar.classList.add('visible'); bar.classList.add('minimal');
+    if (sdkArea)    sdkArea.style.display    = 'none';
+    if (embedArea)  embedArea.style.display  = 'none';
+    if (promptArea) promptArea.style.display = '';
+  }
+}
+
+// ── Re-init SDK if we already have a valid token from a previous session
+if (spotifyToken && Date.now() < spotifyTokenExpiry) {
+  initSpotifySDK();
+} else if (spotifyRefreshTok) {
+  doRefreshToken().then(() => { if (spotifyToken) initSpotifySDK(); });
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+handleSpotifyCallback();   // handle OAuth redirect if present
+renderCatTabs();
+renderLibrary();
+renderBuilder();
+updateStats();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('SW registered:', reg.scope))
+      .catch(err => console.log('SW failed:', err));
+  });
+}
+</script>
+</body>
+</html>
