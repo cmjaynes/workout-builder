@@ -623,11 +623,35 @@ header p { color: var(--muted); font-size: 0.78rem; }
 .coach-phase.rest { color: var(--accent3); }
 .coach-round { color: var(--muted); font-size: 0.85rem; margin-bottom: 16px; display: none; }
 .coach-note { color:#333; font-size:0.82rem; font-style:italic; margin-bottom:10px; max-width:560px; line-height:1.5; }
-.coach-next-up { font-size:0.78rem; color:#252525; letter-spacing:0.5px; margin-bottom:12px; }
-.coach-next-up .next-label { color:#1e1e1e; text-transform:uppercase; font-size:0.62rem; letter-spacing:2px; display:block; margin-bottom:2px; }
-.coach-next-up .next-name { color:#333; }
+.coach-next-up {
+  width: 100%; max-width: 580px;
+  background: #0a0a0a; border: 1px solid #1a1a1a;
+  border-radius: 10px; padding: 12px 18px;
+  margin-bottom: 14px; letter-spacing: 0.5px;
+}
+.coach-next-up .next-label {
+  color: #333; text-transform: uppercase;
+  font-size: 0.6rem; letter-spacing: 3px;
+  display: block; margin-bottom: 5px;
+  font-family: 'Bebas Neue', sans-serif;
+}
+.coach-next-up .next-name {
+  color: #888; font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(1.3rem, 5vw, 2rem); letter-spacing: 2px; line-height: 1.1;
+}
+.coach-next-up.section-change { border-color: var(--accent)22; }
 .coach-next-up.section-change .next-label { color: var(--accent); }
-.coach-next-up.section-change .next-name { color: #888; }
+.coach-next-up.section-change .next-name { color: #aaa; }
+/* swipe hint arrows */
+.coach-swipe-hint {
+  position: fixed; top: 50%; transform: translateY(-50%);
+  font-size: 1.6rem; color: #ffffff18; pointer-events: none;
+  font-family: 'Bebas Neue', sans-serif; transition: color 0.15s;
+  user-select: none;
+}
+.coach-swipe-hint.left  { left: 12px; }
+.coach-swipe-hint.right { right: 12px; }
+.coach-swipe-hint.active { color: #ffffff55; }
 .coach-section-end-tag { display:inline-block; font-family:'Bebas Neue',sans-serif; font-size:0.55rem; letter-spacing:3px; color: var(--accent); border:1px solid var(--accent); border-radius:10px; padding:1px 8px; margin-left:8px; vertical-align:middle; opacity:0.7; }
 .coach-btn-timer { background: transparent; color: var(--accent3); border: 1px solid #3cf0ff44; font-size: 0.88rem; padding: 10px 18px; }
 .coach-btn-timer:hover, .coach-btn-timer.running { background: rgba(60,240,255,0.1); border-color: var(--accent3); }
@@ -770,6 +794,8 @@ header p { color: var(--muted); font-size: 0.78rem; }
 
 <!-- COACH VIEW -->
 <div id="coachView">
+  <div class="coach-swipe-hint left" id="coachHintLeft">‹</div>
+  <div class="coach-swipe-hint right" id="coachHintRight">›</div>
   <!-- Exercise identity -->
   <div class="coach-section-label" id="coachSecLabel"></div>
   <div class="coach-ex-name" id="coachExName">READY</div>
@@ -2417,7 +2443,6 @@ function skipBreak() {
 
 document.addEventListener("keydown", e => {
   if (!document.getElementById("coachView").classList.contains("open")) return;
-  // Space/Enter dismisses break screen if visible
   if (document.getElementById("coachBreak").classList.contains("visible")) {
     if (e.key === " " || e.key === "Enter" || e.key === "ArrowRight") { e.preventDefault(); skipBreak(); }
     if (e.key === "Escape") { e.preventDefault(); closeCoachView(); }
@@ -2427,6 +2452,46 @@ document.addEventListener("keydown", e => {
   if (e.key === "ArrowLeft") { e.preventDefault(); coachPrev(); }
   if (e.key === "Escape") closeCoachView();
 });
+
+// ── COACH VIEW SWIPE ──────────────────────────────────────────
+(function() {
+  let touchStartX = 0, touchStartY = 0, touchStartT = 0;
+  const hintL = () => document.getElementById('coachHintLeft');
+  const hintR = () => document.getElementById('coachHintRight');
+
+  document.getElementById('coachView').addEventListener('touchstart', e => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    touchStartT = Date.now();
+  }, { passive: true });
+
+  document.getElementById('coachView').addEventListener('touchmove', e => {
+    if (!document.getElementById("coachView").classList.contains("open")) return;
+    const dx = e.touches[0].clientX - touchStartX;
+    const dy = e.touches[0].clientY - touchStartY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 20) {
+      if (dx < 0 && hintR()) hintR().classList.add('active');
+      else if (dx > 0 && hintL()) hintL().classList.add('active');
+    }
+  }, { passive: true });
+
+  document.getElementById('coachView').addEventListener('touchend', e => {
+    if (hintL()) hintL().classList.remove('active');
+    if (hintR()) hintR().classList.remove('active');
+    if (!document.getElementById("coachView").classList.contains("open")) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    const dt = Date.now() - touchStartT;
+    // Must be mostly horizontal, fast enough, and far enough
+    if (Math.abs(dx) < 40 || Math.abs(dy) > Math.abs(dx) * 0.8 || dt > 500) return;
+    if (document.getElementById("coachBreak").classList.contains("visible")) {
+      if (dx < 0) skipBreak();
+      return;
+    }
+    if (dx < 0) coachNext();
+    else coachPrev();
+  }, { passive: true });
+})();
 
 // ── EXPORT ────────────────────────────────────────────────────
 function openExport() {
