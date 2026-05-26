@@ -334,7 +334,7 @@ header p { color: var(--muted); font-size: 0.78rem; }
 .crest-modal { max-width: 500px; }
 .crest-modal h2 span { color: var(--accent2); }
 .crest-subtitle { color: var(--muted); font-size: 0.8rem; margin-bottom: 18px; }
-.crest-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+.crest-options { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 18px; }
 .crest-option { border: 2px solid var(--border); border-radius: 12px; padding: 18px 14px; cursor: pointer; transition: all 0.18s; text-align: center; background: var(--surface2); }
 .crest-option:hover { border-color: var(--accent); transform: translateY(-2px); }
 .crest-option.selected { border-color: var(--accent); background: rgba(232,255,60,0.05); }
@@ -886,6 +886,26 @@ header p { color: var(--muted); font-size: 0.78rem; }
         <div class="crest-option-icon">🦵</div>
         <div class="crest-option-title">Lower Body</div>
         <div class="crest-option-desc">Glutes, quads, hamstrings & burnout</div>
+      </div>
+      <div class="crest-option" id="crest-fullbody" onclick="selectCrest('fullbody')">
+        <div class="crest-option-icon">🔥</div>
+        <div class="crest-option-title">Full Body</div>
+        <div class="crest-option-desc">Upper, lower & full body finisher</div>
+      </div>
+      <div class="crest-option" id="crest-totalburn" onclick="selectCrest('totalburn')">
+        <div class="crest-option-icon">⚡</div>
+        <div class="crest-option-title">Total Burn</div>
+        <div class="crest-option-desc">Compound power + upper + lower burnout</div>
+      </div>
+      <div class="crest-option" id="crest-corecardio" onclick="selectCrest('corecardio')">
+        <div class="crest-option-icon">🎯</div>
+        <div class="crest-option-title">Core & Cardio</div>
+        <div class="crest-option-desc">Alternating cardio blasts & core sets</div>
+      </div>
+      <div class="crest-option" id="crest-express" onclick="selectCrest('express')">
+        <div class="crest-option-icon">⏱</div>
+        <div class="crest-option-title">Express 30</div>
+        <div class="crest-option-desc">Quick hit — upper, lower & core</div>
       </div>
     </div>
     <div class="crest-preview" id="crestPreview"></div>
@@ -1911,9 +1931,9 @@ function renderSavedModal() {
 // ── TEMPLATES ─────────────────────────────────────────────────
 function generateCrestWorkout(type) {
   const shuffle = arr => [...arr].sort(() => Math.random() - 0.5);
-  const pick = (cat, n) => shuffle(EXERCISES.filter(e => e.cat === cat)).slice(0, n).map(e => e.name);
+  const pick = (cat, n) => shuffle(getAllExercises().filter(e => e.cat === cat)).slice(0, n).map(e => e.name);
   if (type === 'upper') {
-    const pool = shuffle(EXERCISES.filter(e => e.cat === 'upper')).slice(0, 12).map(e => e.name);
+    const pool = pick('upper', 12);
     return { title: "UPPER BODY", sections: [
       { label: "WARM UP", color: "warmup", exercises: pick('warmup', 4), note: "Light warm up — keep it flowing" },
       { label: "SET 1 — CHEST & SHOULDERS", color: "chest", exercises: pool.slice(0, 4), note: "" },
@@ -1921,22 +1941,52 @@ function generateCrestWorkout(type) {
       { label: "SET 3 — FINISHER", color: "burnout", exercises: pool.slice(8, 12), note: "Final push!" },
       { label: "ABS", color: "abs", exercises: pick('core', 4), note: "" },
     ]};
-  } else {
-    const pool = shuffle(EXERCISES.filter(e => e.cat === 'legs')).slice(0, 12).map(e => e.name);
+  } else if (type === 'lower') {
+    const pool = pick('legs', 12);
     return { title: "LOWER BODY", sections: [
       { label: "WARM UP", color: "warmup", exercises: pick('warmup', 4), note: "" },
       { label: "SET 1 — QUADS & GLUTES", color: "set", exercises: pool.slice(0, 4), note: "" },
       { label: "SET 2 — LUNGES", color: "set", exercises: pool.slice(4, 8), note: "" },
       { label: "SET 3 — HAMSTRINGS", color: "set", exercises: pool.slice(8, 12), note: "" },
-      { label: "BURNOUT", color: "burnout", exercises: [...pick('cardio', 2), ...pick('core', 1)], note: "Leave it all on the floor 🔥" },
+      { label: "BURNOUT", color: "burnout", exercises: [...pick('cardio', 2), ...pick('core', 1)], note: "Leave it all on the floor!" },
+    ]};
+  } else if (type === 'fullbody') {
+    return { title: "FULL BODY", sections: [
+      { label: "WARM UP", color: "warmup", exercises: pick('warmup', 4), note: "Get every muscle ready" },
+      { label: "UPPER BODY", color: "chest", exercises: pick('upper', 4), note: "" },
+      { label: "LOWER BODY", color: "set", exercises: pick('legs', 4), note: "" },
+      { label: "FULL BODY PUSH", color: "burnout", exercises: pick('full', 4), note: "Compound moves — full effort" },
+      { label: "CORE BURN", color: "abs", exercises: pick('core', 4), note: "Finish strong" },
+    ]};
+  } else if (type === 'totalburn') {
+    return { title: "TOTAL BODY BURN", sections: [
+      { label: "WARM UP", color: "warmup", exercises: pick('warmup', 4), note: "Elevate your heart rate" },
+      { label: "POWER CIRCUIT", color: "burnout", exercises: pick('full', 4), note: "Big compound movements" },
+      { label: "UPPER DRIVE", color: "chest", exercises: pick('upper', 4), note: "" },
+      { label: "LOWER DRIVE", color: "set", exercises: pick('legs', 4), note: "" },
+      { label: "BURNOUT", color: "burnout", exercises: [...pick('cardio', 2), ...pick('full', 2)], note: "Empty the tank!" },
+    ]};
+  } else if (type === 'corecardio') {
+    return { title: "CORE & CARDIO", sections: [
+      { label: "WARM UP", color: "warmup", exercises: pick('warmup', 3), note: "Light and mobile" },
+      { label: "CARDIO BLAST 1", color: "burnout", exercises: pick('cardio', 4), note: "Push the pace" },
+      { label: "CORE ROUND 1", color: "abs", exercises: pick('core', 4), note: "" },
+      { label: "CARDIO BLAST 2", color: "burnout", exercises: pick('cardio', 4), note: "Stay with it" },
+      { label: "CORE FINISHER", color: "abs", exercises: pick('core', 4), note: "Burn it out" },
+    ]};
+  } else if (type === 'express') {
+    return { title: "EXPRESS 30", sections: [
+      { label: "WARM UP", color: "warmup", exercises: pick('warmup', 3), note: "Quick but thorough" },
+      { label: "UPPER BODY", color: "chest", exercises: pick('upper', 3), note: "" },
+      { label: "LOWER BODY", color: "set", exercises: pick('legs', 3), note: "" },
+      { label: "CORE + CARDIO", color: "burnout", exercises: [...pick('core', 2), ...pick('cardio', 2)], note: "Finish with fire" },
     ]};
   }
 }
 
 function openCrestModal() {
   selectedCrest = null;
-  document.getElementById("crest-upper").classList.remove("selected");
-  document.getElementById("crest-lower").classList.remove("selected");
+  document.querySelectorAll(".crest-option").forEach(el => el.classList.remove("selected"));
   document.getElementById("crestPreview").classList.remove("visible");
   document.getElementById("crestLoadBtn").style.display = "none";
   renderTemplatesModal();
@@ -1946,8 +1996,9 @@ function closeCrestModal() { document.getElementById("crestModal").classList.rem
 
 function selectCrest(type) {
   selectedCrest = type;
-  document.getElementById("crest-upper").classList.toggle("selected", type === "upper");
-  document.getElementById("crest-lower").classList.toggle("selected", type === "lower");
+  document.querySelectorAll(".crest-option").forEach(el => el.classList.remove("selected"));
+  const el = document.getElementById(`crest-${type}`);
+  if (el) el.classList.add("selected");
   const structures = {
     upper: [
       { label: "WARM UP", note: "4 random warm-up exercises" },
@@ -1962,7 +2013,34 @@ function selectCrest(type) {
       { label: "SET 2 — LUNGES", note: "4 random leg exercises" },
       { label: "SET 3 — HAMSTRINGS", note: "4 random leg exercises" },
       { label: "BURNOUT", note: "2 random cardio + 1 core exercise" },
-    ]
+    ],
+    fullbody: [
+      { label: "WARM UP", note: "4 random warm-up exercises" },
+      { label: "UPPER BODY", note: "4 random upper body exercises" },
+      { label: "LOWER BODY", note: "4 random leg exercises" },
+      { label: "FULL BODY PUSH", note: "4 random full body exercises" },
+      { label: "CORE BURN", note: "4 random core exercises" },
+    ],
+    totalburn: [
+      { label: "WARM UP", note: "4 random warm-up exercises" },
+      { label: "POWER CIRCUIT", note: "4 random full body exercises" },
+      { label: "UPPER DRIVE", note: "4 random upper body exercises" },
+      { label: "LOWER DRIVE", note: "4 random leg exercises" },
+      { label: "BURNOUT", note: "2 random cardio + 2 random full body" },
+    ],
+    corecardio: [
+      { label: "WARM UP", note: "3 random warm-up exercises" },
+      { label: "CARDIO BLAST 1", note: "4 random cardio exercises" },
+      { label: "CORE ROUND 1", note: "4 random core exercises" },
+      { label: "CARDIO BLAST 2", note: "4 random cardio exercises" },
+      { label: "CORE FINISHER", note: "4 random core exercises" },
+    ],
+    express: [
+      { label: "WARM UP", note: "3 random warm-up exercises" },
+      { label: "UPPER BODY", note: "3 random upper body exercises" },
+      { label: "LOWER BODY", note: "3 random leg exercises" },
+      { label: "CORE + CARDIO", note: "2 core + 2 cardio exercises" },
+    ],
   };
   const preview = document.getElementById("crestPreview");
   preview.innerHTML = structures[type].map(s =>
