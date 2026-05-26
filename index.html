@@ -498,87 +498,76 @@ header p { color: var(--muted); font-size: 0.78rem; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
-/* ── MOBILE TAB BAR (hidden on desktop) ── */
+/* ── MOBILE TAB BAR ── */
 .mob-tab-bar {
   display: none; position: fixed; bottom: 0; left: 0; right: 0;
-  height: 60px; padding-bottom: env(safe-area-inset-bottom);
+  height: 56px; padding-bottom: env(safe-area-inset-bottom);
   background: var(--surface); border-top: 1px solid var(--border);
-  z-index: 150;
+  z-index: 150; flex-direction: row;
 }
 .mob-tab {
   flex: 1; display: flex; flex-direction: column; align-items: center;
   justify-content: center; background: none; border: none;
-  color: #444; font-family: 'DM Sans', sans-serif; font-size: 0.65rem;
-  font-weight: 600; letter-spacing: 0.5px; gap: 2px; cursor: pointer;
-  transition: color 0.15s; padding: 0 4px; text-transform: uppercase;
+  color: #3a3a3a; font-family: 'DM Sans', sans-serif; font-size: 0.6rem;
+  font-weight: 700; letter-spacing: 0.5px; gap: 1px; cursor: pointer;
+  text-transform: uppercase; padding: 0; transition: color 0.12s;
 }
-.mob-tab-icon { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 1px; line-height: 1; }
+.mob-tab-icon { font-size: 1.15rem; line-height: 1; }
 .mob-tab.active { color: var(--accent); }
-.mob-tab-present {
-  flex: 1.2; color: var(--accent3); border-left: 1px solid var(--border);
+.mob-tab-present { background: #0a1a0d; color: var(--accent3) !important; flex: 1; border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
+.mob-tab-present .mob-tab-icon { font-size: 1.3rem; }
+/* More page */
+.mob-more-page {
+  display: none; position: fixed;
+  top: 52px; left: 0; right: 0; bottom: 56px;
+  background: var(--bg); z-index: 100; overflow-y: auto; padding: 20px 16px 32px;
 }
-.mob-tab-present .mob-tab-icon { font-size: 1.5rem; }
-/* Overflow bottom sheet */
-.mob-backdrop {
-  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 190;
+.mob-more-page.visible { display: block; }
+.mob-more-heading {
+  font-family: 'Bebas Neue', sans-serif; font-size: 0.62rem;
+  letter-spacing: 3px; color: #333; margin: 0 0 8px 4px;
 }
-.mob-backdrop.open { display: block; }
-.mob-sheet {
-  position: fixed; left: 0; right: 0; bottom: 60px;
-  background: var(--surface); border-top: 1px solid var(--border);
-  border-radius: 16px 16px 0 0; padding: 10px 20px 16px;
-  z-index: 195; transform: translateY(100%); transition: transform 0.25s ease;
-  display: flex; flex-direction: column;
+.mob-more-btn {
+  width: 100%; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; color: var(--text); font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem; font-weight: 500; padding: 16px 16px;
+  text-align: left; cursor: pointer; margin-bottom: 8px;
+  display: flex; align-items: center; justify-content: space-between;
+  transition: border-color 0.12s, color 0.12s;
 }
-.mob-sheet.open { transform: translateY(0); }
-.mob-sheet-handle { width: 36px; height: 4px; background: #2a2a2a; border-radius: 2px; margin: 0 auto 16px; }
-.mob-sheet-item {
-  background: none; border: none; color: var(--text); font-family: 'DM Sans', sans-serif;
-  font-size: 0.95rem; padding: 14px 0; text-align: left; cursor: pointer;
-  border-bottom: 1px solid #111; display: flex; align-items: center; gap: 12px;
-}
-.mob-sheet-item:last-child { border-bottom: none; }
-.mob-sheet-item:active { color: var(--accent); }
-.mob-sheet-icon { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 1px; color: var(--muted); width: 24px; }
-/* Mobile-only / desktop-only helpers */
+.mob-more-btn:active { border-color: var(--accent); color: var(--accent); }
+.mob-more-arrow { color: #2a2a2a; font-size: 0.85rem; }
 .mob-only { display: none; }
 
 /* ── MOBILE ── */
 @media (max-width: 680px) {
-  /* Show tab bar, hide desktop header buttons */
   .mob-tab-bar { display: flex; }
-  .mob-only { display: flex; }
-  body { overflow: hidden; padding-bottom: 60px; }
+  body { overflow: hidden; padding-bottom: 56px; }
 
-  /* Compact header */
+  /* Compact header — title only */
   header { padding: 10px 14px; gap: 6px; }
-  header h1 { font-size: 1.25rem; }
+  header h1 { font-size: 1.2rem; }
   header p { display: none; }
-  .header-actions > .btn:not(.mob-only) { display: none; }
-
-  /* Hide stats bar */
+  .header-actions { display: none; }
   .stats-bar { display: none; }
 
-  /* Main: single column, full height minus header */
+  /* Main panel area: full height between header and tab bar */
   .main {
     grid-template-columns: 1fr;
-    height: calc(100dvh - 52px);
+    height: calc(100dvh - 52px - 56px);
     overflow: hidden;
   }
-
-  /* Library + builder each fill the space */
   .library { height: 100%; border-right: none; border-bottom: none; }
   .builder { height: 100%; }
 
-  /* Tab switching — controlled by body class */
-  body.mob-build .library { display: none; }
-  body.mob-library .builder { display: none; }
+  /* Tab switching via body class */
+  body.mob-build   .library        { display: none; }
+  body.mob-library .builder        { display: none; }
+  body.mob-more    .main           { display: none; }
 
-  /* Library header: hide the title, save vertical space */
+  /* Library: compact header, scrollable tabs */
   .library-header h2 { display: none; }
   .library-header { padding: 8px 12px; }
-
-  /* Category tabs: horizontal scroll, no wrap */
   .category-tabs { flex-wrap: nowrap; overflow-x: auto; padding: 6px 12px; }
   .category-tabs::-webkit-scrollbar { display: none; }
   .cat-tab { white-space: nowrap; padding: 5px 12px; font-size: 0.72rem; }
@@ -587,13 +576,11 @@ header p { color: var(--muted); font-size: 0.78rem; }
   .exercise-item { padding: 11px 10px; }
   .add-ex-btn { width: 30px; height: 30px; font-size: 1.1rem; }
 
-  /* Builder toolbar: tighter */
+  /* Builder toolbar */
   .builder-toolbar { padding: 8px 12px; gap: 8px; }
   .workout-title-input { font-size: 0.9rem; }
   .toolbar-actions { gap: 5px; }
   .toolbar-actions .btn { font-size: 0.72rem; padding: 5px 8px; }
-
-  /* Section cards: tighter */
   .builder-sections { padding: 10px 10px 20px; gap: 10px; }
 }
 
@@ -712,8 +699,6 @@ header p { color: var(--muted); font-size: 0.78rem; }
     <button class="btn btn-coach" onclick="openCoachView()">Present</button>
     <button class="btn btn-hdr-music" id="btnMusic" onclick="toggleMusicPanel()">Music</button>
     <button class="btn btn-accent" onclick="openExport()">Export</button>
-    <!-- Mobile only: overflow menu -->
-    <button class="btn btn-ghost mob-only" onclick="openMobMenu()" style="font-size:1.2rem;padding:5px 12px;letter-spacing:1px;">⋯</button>
   </div>
 </header>
 
@@ -3039,19 +3024,14 @@ if (spotifyToken && Date.now() < spotifyTokenExpiry) {
 let mobileTab = 'build';
 function setMobileTab(tab) {
   mobileTab = tab;
-  document.body.classList.remove('mob-build', 'mob-library');
+  document.body.classList.remove('mob-build', 'mob-library', 'mob-more');
   document.body.classList.add(`mob-${tab}`);
   document.querySelectorAll('.mob-tab[id]').forEach(b => b.classList.remove('active'));
-  const btn = document.getElementById(tab === 'library' ? 'mobTabLib' : 'mobTabBuild');
+  const ids = { build:'mobTabBuild', library:'mobTabLib', more:'mobTabMore' };
+  const btn = document.getElementById(ids[tab]);
   if (btn) btn.classList.add('active');
-}
-function openMobMenu() {
-  document.getElementById('mobBackdrop').classList.add('open');
-  document.getElementById('mobSheet').classList.add('open');
-}
-function closeMobMenu() {
-  document.getElementById('mobBackdrop').classList.remove('open');
-  document.getElementById('mobSheet').classList.remove('open');
+  const morePage = document.getElementById('mobMorePage');
+  if (morePage) morePage.classList.toggle('visible', tab === 'more');
 }
 
 // ── INIT ──────────────────────────────────────────────────────
@@ -3076,40 +3056,54 @@ if ('serviceWorker' in navigator) {
 <!-- ── MOBILE TAB BAR ── -->
 <nav class="mob-tab-bar" id="mobTabBar">
   <button class="mob-tab active" id="mobTabBuild" onclick="setMobileTab('build')">
-    <span class="mob-tab-icon">BUILD</span>
-    <span>Session</span>
+    <span class="mob-tab-icon">✦</span>
+    <span>Build</span>
+  </button>
+  <button class="mob-tab" id="mobTabLib" onclick="setMobileTab('library')">
+    <span class="mob-tab-icon">☰</span>
+    <span>Library</span>
   </button>
   <button class="mob-tab mob-tab-present" onclick="openCoachView()">
     <span class="mob-tab-icon">▶</span>
     <span>Present</span>
   </button>
-  <button class="mob-tab" id="mobTabLib" onclick="setMobileTab('library')">
-    <span class="mob-tab-icon">LIB</span>
-    <span>Library</span>
+  <button class="mob-tab" id="mobTabMore" onclick="setMobileTab('more')">
+    <span class="mob-tab-icon">⋯</span>
+    <span>More</span>
   </button>
 </nav>
 
-<!-- ── MOBILE OVERFLOW SHEET ── -->
-<div class="mob-backdrop" id="mobBackdrop" onclick="closeMobMenu()"></div>
-<div class="mob-sheet" id="mobSheet">
-  <div class="mob-sheet-handle"></div>
-  <button class="mob-sheet-item" onclick="openCrestModal();closeMobMenu()">
-    <span class="mob-sheet-icon">TPL</span>Templates
+<!-- ── MOBILE MORE PAGE ── -->
+<div class="mob-more-page" id="mobMorePage">
+  <div class="mob-more-heading">SESSION</div>
+  <button class="mob-more-btn" onclick="openCrestModal();setMobileTab('build')">
+    Templates <span class="mob-more-arrow">›</span>
   </button>
-  <button class="mob-sheet-item" onclick="randomizeWorkout();closeMobMenu()">
-    <span class="mob-sheet-icon">RND</span>Randomize Session
+  <button class="mob-more-btn" onclick="randomizeWorkout();setMobileTab('build')">
+    Randomize Session <span class="mob-more-arrow">›</span>
   </button>
-  <button class="mob-sheet-item" onclick="openSavedModal();closeMobMenu()">
-    <span class="mob-sheet-icon">SAV</span>Saved Sessions
+  <button class="mob-more-btn" onclick="saveCurrentWorkout()">
+    Save Session <span class="mob-more-arrow">›</span>
   </button>
-  <button class="mob-sheet-item" onclick="openPastModal();closeMobMenu()">
-    <span class="mob-sheet-icon">PST</span>Past Workouts
+  <div class="mob-more-heading" style="margin-top:20px">HISTORY</div>
+  <button class="mob-more-btn" onclick="openSavedModal()">
+    Saved Sessions <span class="mob-more-arrow">›</span>
   </button>
-  <button class="mob-sheet-item" onclick="toggleMusicPanel();closeMobMenu()">
-    <span class="mob-sheet-icon">MUS</span>Music
+  <button class="mob-more-btn" onclick="openPastModal()">
+    Past Workouts <span class="mob-more-arrow">›</span>
   </button>
-  <button class="mob-sheet-item" onclick="openExport();closeMobMenu()">
-    <span class="mob-sheet-icon">EXP</span>Export Session
+  <div class="mob-more-heading" style="margin-top:20px">TOOLS</div>
+  <button class="mob-more-btn" onclick="toggleMusicPanel()">
+    Music <span class="mob-more-arrow">›</span>
+  </button>
+  <button class="mob-more-btn" onclick="openExport()">
+    Export Session <span class="mob-more-arrow">›</span>
+  </button>
+  <button class="mob-more-btn" onclick="openLibSettingsModal()">
+    Library Settings <span class="mob-more-arrow">›</span>
+  </button>
+  <button class="mob-more-btn" onclick="openPackModal()">
+    Discipline Packs <span class="mob-more-arrow">›</span>
   </button>
 </div>
 
