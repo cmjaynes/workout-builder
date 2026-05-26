@@ -498,13 +498,103 @@ header p { color: var(--muted); font-size: 0.78rem; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
+/* ── MOBILE TAB BAR (hidden on desktop) ── */
+.mob-tab-bar {
+  display: none; position: fixed; bottom: 0; left: 0; right: 0;
+  height: 60px; padding-bottom: env(safe-area-inset-bottom);
+  background: var(--surface); border-top: 1px solid var(--border);
+  z-index: 150;
+}
+.mob-tab {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; background: none; border: none;
+  color: #444; font-family: 'DM Sans', sans-serif; font-size: 0.65rem;
+  font-weight: 600; letter-spacing: 0.5px; gap: 2px; cursor: pointer;
+  transition: color 0.15s; padding: 0 4px; text-transform: uppercase;
+}
+.mob-tab-icon { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 1px; line-height: 1; }
+.mob-tab.active { color: var(--accent); }
+.mob-tab-present {
+  flex: 1.2; color: var(--accent3); border-left: 1px solid var(--border);
+}
+.mob-tab-present .mob-tab-icon { font-size: 1.5rem; }
+/* Overflow bottom sheet */
+.mob-backdrop {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 190;
+}
+.mob-backdrop.open { display: block; }
+.mob-sheet {
+  position: fixed; left: 0; right: 0; bottom: 60px;
+  background: var(--surface); border-top: 1px solid var(--border);
+  border-radius: 16px 16px 0 0; padding: 10px 20px 16px;
+  z-index: 195; transform: translateY(100%); transition: transform 0.25s ease;
+  display: flex; flex-direction: column;
+}
+.mob-sheet.open { transform: translateY(0); }
+.mob-sheet-handle { width: 36px; height: 4px; background: #2a2a2a; border-radius: 2px; margin: 0 auto 16px; }
+.mob-sheet-item {
+  background: none; border: none; color: var(--text); font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem; padding: 14px 0; text-align: left; cursor: pointer;
+  border-bottom: 1px solid #111; display: flex; align-items: center; gap: 12px;
+}
+.mob-sheet-item:last-child { border-bottom: none; }
+.mob-sheet-item:active { color: var(--accent); }
+.mob-sheet-icon { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 1px; color: var(--muted); width: 24px; }
+/* Mobile-only / desktop-only helpers */
+.mob-only { display: none; }
+
 /* ── MOBILE ── */
 @media (max-width: 680px) {
-  .main { grid-template-columns: 1fr; height: auto; }
-  .library { height: 300px; border-right: none; border-bottom: 1px solid var(--border); }
-  .builder { height: auto; min-height: 60vh; }
-  .main { overflow: visible; height: auto; }
-  body { overflow-y: auto; }
+  /* Show tab bar, hide desktop header buttons */
+  .mob-tab-bar { display: flex; }
+  .mob-only { display: flex; }
+  body { overflow: hidden; padding-bottom: 60px; }
+
+  /* Compact header */
+  header { padding: 10px 14px; gap: 6px; }
+  header h1 { font-size: 1.25rem; }
+  header p { display: none; }
+  .header-actions > .btn:not(.mob-only) { display: none; }
+
+  /* Hide stats bar */
+  .stats-bar { display: none; }
+
+  /* Main: single column, full height minus header */
+  .main {
+    grid-template-columns: 1fr;
+    height: calc(100dvh - 52px);
+    overflow: hidden;
+  }
+
+  /* Library + builder each fill the space */
+  .library { height: 100%; border-right: none; border-bottom: none; }
+  .builder { height: 100%; }
+
+  /* Tab switching — controlled by body class */
+  body.mob-build .library { display: none; }
+  body.mob-library .builder { display: none; }
+
+  /* Library header: hide the title, save vertical space */
+  .library-header h2 { display: none; }
+  .library-header { padding: 8px 12px; }
+
+  /* Category tabs: horizontal scroll, no wrap */
+  .category-tabs { flex-wrap: nowrap; overflow-x: auto; padding: 6px 12px; }
+  .category-tabs::-webkit-scrollbar { display: none; }
+  .cat-tab { white-space: nowrap; padding: 5px 12px; font-size: 0.72rem; }
+
+  /* Exercise items: bigger tap targets */
+  .exercise-item { padding: 11px 10px; }
+  .add-ex-btn { width: 30px; height: 30px; font-size: 1.1rem; }
+
+  /* Builder toolbar: tighter */
+  .builder-toolbar { padding: 8px 12px; gap: 8px; }
+  .workout-title-input { font-size: 0.9rem; }
+  .toolbar-actions { gap: 5px; }
+  .toolbar-actions .btn { font-size: 0.72rem; padding: 5px 8px; }
+
+  /* Section cards: tighter */
+  .builder-sections { padding: 10px 10px 20px; gap: 10px; }
 }
 
 /* ── DISCIPLINE PACKS ── */
@@ -622,6 +712,8 @@ header p { color: var(--muted); font-size: 0.78rem; }
     <button class="btn btn-coach" onclick="openCoachView()">Present</button>
     <button class="btn btn-hdr-music" id="btnMusic" onclick="toggleMusicPanel()">Music</button>
     <button class="btn btn-accent" onclick="openExport()">Export</button>
+    <!-- Mobile only: overflow menu -->
+    <button class="btn btn-ghost mob-only" onclick="openMobMenu()" style="font-size:1.2rem;padding:5px 12px;letter-spacing:1px;">⋯</button>
   </div>
 </header>
 
@@ -1650,6 +1742,7 @@ function addExToSection(secId) {
   if (sec && pendingExerciseName) {
     sec.exercises.push({ name: pendingExerciseName, reps: timer !== "Off" ? timer : "" });
     renderBuilder(); updateStats();
+    if (window.innerWidth <= 680) setMobileTab('build');
     setTimeout(() => { const el = document.getElementById(`sec-${secId}`); if (el) el.scrollIntoView({ behavior:"smooth", block:"center" }); }, 80);
   }
   closePickSection();
@@ -1661,6 +1754,7 @@ function addSection(label="", exercises=[], color="set", note="") {
   const timer = GLOBAL_TIMERS[globalTimerIdx];
   sections.push({ id, label, color, note, tabata: null, exercises: exercises.map(e => ({ name: e, reps: timer !== "Off" ? timer : "" })) });
   renderBuilder(); updateStats();
+  if (window.innerWidth <= 680) setMobileTab('build');
   if (!label) setTimeout(() => { const inp = document.getElementById(`sec-label-${id}`); if (inp) inp.focus(); }, 50);
 }
 
@@ -2941,12 +3035,33 @@ if (spotifyToken && Date.now() < spotifyTokenExpiry) {
   doRefreshToken().then(() => { if (spotifyToken) initSpotifySDK(); });
 }
 
+// ── MOBILE NAV ────────────────────────────────────────────────
+let mobileTab = 'build';
+function setMobileTab(tab) {
+  mobileTab = tab;
+  document.body.classList.remove('mob-build', 'mob-library');
+  document.body.classList.add(`mob-${tab}`);
+  document.querySelectorAll('.mob-tab[id]').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById(tab === 'library' ? 'mobTabLib' : 'mobTabBuild');
+  if (btn) btn.classList.add('active');
+}
+function openMobMenu() {
+  document.getElementById('mobBackdrop').classList.add('open');
+  document.getElementById('mobSheet').classList.add('open');
+}
+function closeMobMenu() {
+  document.getElementById('mobBackdrop').classList.remove('open');
+  document.getElementById('mobSheet').classList.remove('open');
+}
+
 // ── INIT ──────────────────────────────────────────────────────
 handleSpotifyCallback();   // handle OAuth redirect if present
 renderCatTabs();
 renderLibrary();
 renderBuilder();
 updateStats();
+// Start on Build tab on mobile
+if (window.innerWidth <= 680) setMobileTab('build');
 </script>
 <script>
 if ('serviceWorker' in navigator) {
@@ -2957,5 +3072,46 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+
+<!-- ── MOBILE TAB BAR ── -->
+<nav class="mob-tab-bar" id="mobTabBar">
+  <button class="mob-tab active" id="mobTabBuild" onclick="setMobileTab('build')">
+    <span class="mob-tab-icon">BUILD</span>
+    <span>Session</span>
+  </button>
+  <button class="mob-tab mob-tab-present" onclick="openCoachView()">
+    <span class="mob-tab-icon">▶</span>
+    <span>Present</span>
+  </button>
+  <button class="mob-tab" id="mobTabLib" onclick="setMobileTab('library')">
+    <span class="mob-tab-icon">LIB</span>
+    <span>Library</span>
+  </button>
+</nav>
+
+<!-- ── MOBILE OVERFLOW SHEET ── -->
+<div class="mob-backdrop" id="mobBackdrop" onclick="closeMobMenu()"></div>
+<div class="mob-sheet" id="mobSheet">
+  <div class="mob-sheet-handle"></div>
+  <button class="mob-sheet-item" onclick="openCrestModal();closeMobMenu()">
+    <span class="mob-sheet-icon">TPL</span>Templates
+  </button>
+  <button class="mob-sheet-item" onclick="randomizeWorkout();closeMobMenu()">
+    <span class="mob-sheet-icon">RND</span>Randomize Session
+  </button>
+  <button class="mob-sheet-item" onclick="openSavedModal();closeMobMenu()">
+    <span class="mob-sheet-icon">SAV</span>Saved Sessions
+  </button>
+  <button class="mob-sheet-item" onclick="openPastModal();closeMobMenu()">
+    <span class="mob-sheet-icon">PST</span>Past Workouts
+  </button>
+  <button class="mob-sheet-item" onclick="toggleMusicPanel();closeMobMenu()">
+    <span class="mob-sheet-icon">MUS</span>Music
+  </button>
+  <button class="mob-sheet-item" onclick="openExport();closeMobMenu()">
+    <span class="mob-sheet-icon">EXP</span>Export Session
+  </button>
+</div>
+
 </body>
 </html>
